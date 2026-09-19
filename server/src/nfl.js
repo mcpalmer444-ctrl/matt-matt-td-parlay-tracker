@@ -71,53 +71,61 @@ async function getGameSummary(eventId) {
 function extractPlayerTouchdowns(summary) {
   const results = new Map();
 
-  const players = summary?.boxscore?.players || [];
+  const scoringPlays = Array.isArray(summary?.scoringPlays)
+    ? summary.scoringPlays
+    : [];
 
-  for (const teamGroup of players) {
-    for (const statGroup of teamGroup?.statistics || []) {
-      for (const athlete of statGroup?.athletes || []) {
-        const name =
-          athlete?.athlete?.displayName ||
-          athlete?.athlete?.fullName ||
-          athlete?.displayName ||
-          "";
+  for (const play of scoringPlays) {
+    const type = String(play?.type?.text || "").toLowerCase();
+    const text = String(play?.text || "");
 
-        if (!name) continue;
+    if (!type.includes("touchdown")) {
+      continue;
+    }
 
-        const stats = athlete?.stats || [];
+    let scorer = "";
 
-        let touchdowns = 0;
+    // Passing TD:
+    // "Joshua Palmer 43 Yd pass from Josh Allen ..."
+    if (type.includes("passing touchdown")) {
+      scorer = text.split(" pass from ")[0].trim();
+    }
 
-        for (const stat of stats) {
-          const label = String(stat?.label || "").toLowerCase();
-          const nameField = String(stat?.name || "").toLowerCase();
+    // Rushing TD:
+    // "Josh Allen 2 Yd Rush ..."
+    else if (type.includes("rushing touchdown")) {
+      const match = text.match(/^(.+?)\s+\d+\s+Yd\s+Rush/i);
 
-          if (
-            label === "td" ||
-            label === "touchdowns" ||
-            nameField === "touchdowns" ||
-            nameField === "td"
-          ) {
-            const parsed = Number(stat?.displayValue);
-
-            if (Number.isFinite(parsed)) {
-              touchdowns = Math.max(touchdowns, parsed);
-            }
-          }
-        }
-
-        const key = normalizeName(name);
-
-        if (key) {
-          results.set(key, {
-            name,
-            touchdowns,
-          });
-        }
+      if (match) {
+        scorer = match[1].trim();
       }
     }
+
+    // Other touchdown types
+    else {
+      const match = text.match(/^(.+?)\s+\d+\s+Yd\s+/i);
+
+      if (match) {
+        scorer = match[1].trim();
+      }
+    }
+
+    if (!scorer) {
+      continue;
+    }
+
+    const key = normalizeName(scorer);
+
+    const existing = results.get(key);
+
+    results.set(key, {
+      name: scorer,
+      touchdowns: (existing?.touchdowns || 0) + 1,
+    });
   }
 
+  return results;
+}
   return results;
 }
 
