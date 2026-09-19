@@ -85,24 +85,15 @@ function extractPlayerTouchdowns(summary) {
 
     let scorer = "";
 
-    // Passing TD:
-    // "Joshua Palmer 43 Yd pass from Josh Allen ..."
     if (type.includes("passing touchdown")) {
       scorer = text.split(" pass from ")[0].trim();
-    }
-
-    // Rushing TD:
-    // "Josh Allen 2 Yd Rush ..."
-    else if (type.includes("rushing touchdown")) {
+    } else if (type.includes("rushing touchdown")) {
       const match = text.match(/^(.+?)\s+\d+\s+Yd\s+Rush/i);
 
       if (match) {
         scorer = match[1].trim();
       }
-    }
-
-    // Other touchdown types
-    else {
+    } else {
       const match = text.match(/^(.+?)\s+\d+\s+Yd\s+/i);
 
       if (match) {
@@ -115,7 +106,6 @@ function extractPlayerTouchdowns(summary) {
     }
 
     const key = normalizeName(scorer);
-
     const existing = results.get(key);
 
     results.set(key, {
@@ -124,8 +114,6 @@ function extractPlayerTouchdowns(summary) {
     });
   }
 
-  return results;
-}
   return results;
 }
 
