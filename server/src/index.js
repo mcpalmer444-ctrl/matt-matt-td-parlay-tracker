@@ -64,7 +64,26 @@ async function getState() {
 }
 
 app.get("/api/state", async (_req,res) => res.json(await getState()));
+app.post("/api/live-status", async (req, res) => {
+  try {
+    const players = Array.isArray(req.body?.players)
+      ? req.body.players
+      : [];
 
+    if (!players.length) {
+      return res.json({ players: [] });
+    }
+
+    const statuses = await getNFLPlayerStatuses(players);
+
+    res.json({ players: statuses });
+  } catch (error) {
+    console.error("Live status error:", error);
+    res.status(500).json({
+      error: "Unable to retrieve live NFL player status.",
+    });
+  }
+});
 app.post("/api/transactions", async (req,res) => {
   const { person, amount, note = "" } = req.body;
   if (!["mattP","mattB"].includes(person) || !Number.isFinite(Number(amount))) {
