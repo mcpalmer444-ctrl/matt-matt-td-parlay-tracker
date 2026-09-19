@@ -64,6 +64,34 @@ async function getState() {
 }
 
 app.get("/api/state", async (_req,res) => res.json(await getState()));
+function updateParlayResult(parlay) {
+  const legs = parlay.legs || [];
+
+  if (!legs.length) {
+    return parlay;
+  }
+
+  const hasFailed = legs.some((leg) => leg.status === "failed");
+  const allScored = legs.every((leg) => leg.status === "td_scored");
+
+  if (hasFailed) {
+    return {
+      ...parlay,
+      status: "lost",
+      result: "LOSS",
+    };
+  }
+
+  if (allScored) {
+    return {
+      ...parlay,
+      status: "won",
+      result: "WIN",
+    };
+  }
+
+  return parlay;
+}
 app.post("/api/live-status", async (req, res) => {
   try {
     const players = Array.isArray(req.body?.players)
@@ -75,6 +103,63 @@ app.post("/api/live-status", async (req, res) => {
     }
 
     const statuses = await getNFLPlayerStatuses(players);
+    const statusMap = new Map(
+  statuses.map((x) => [String(x.id), x])
+);
+
+if (pool) {
+  const parlayIds = [...new Set(
+    players
+      .map((p) => p.parlayId)
+      .filter(Boolean)
+  )];
+
+  for (const parlayId of parlayIds) {
+    const current = await pool.query(
+      "SELECT * FROM parlays WHERE id=$1",
+      [parlayId]
+    );
+
+    if (!current.rowCount) continue;
+
+    const parlay = current.rows[0];
+
+    const updatedLegs = (parlay.legs || []).map((leg) => {
+      const live = statusMap.get(String(leg.id));
+
+      if (!live) return leg;
+
+      return {
+        ...leg,
+        status:
+          leg.status === "td_scored"
+            ? "td_scored"
+            : live.status,
+        touchdowns:
+          leg.status === "td_scored"
+            ? Math.max(
+                Number(leg.touchdowns || 1),
+                Number(live.touchdowns || 0)
+              )
+            : Number(live.touchdowns || 0)
+      };
+    });
+
+    const updatedParlay = updateParlayResult({
+      ...parlay,
+      legs: updatedLegs
+    });
+
+    await pool.query(
+      "UPDATE parlays SET status=$1, legs=$2 WHERE id=$3",
+      [
+        updatedParlay.status,
+        JSON.stringify(updatedLegs),
+        parlayId
+      ]
+    );
+  }
+}
 
     res.json({ players: statuses });
   } catch (error) {
