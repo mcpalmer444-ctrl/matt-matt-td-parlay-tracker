@@ -211,7 +211,7 @@ async function getNFLPlayerStatuses(players) {
   return statuses;
 }
 
-module.exports = {
+export {
   getNFLScoreboard,
   getGameSummary,
   getNFLPlayerStatuses,
