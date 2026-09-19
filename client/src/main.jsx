@@ -106,11 +106,75 @@ function ParlayCard({p,onRefresh}){
   const won=legs.filter(l=>l.status==="td_scored").length;
   const failed=legs.some(l=>l.status==="failed");
   const status=failed?"LOST":p.status==="won"?"WON":"ALIVE";
+
+  const wager=Number(p.wager||0);
+  const potential=Number(p.promo_adjusted_payout ?? p.potential_payout ?? 0);
+  const actual=Number(p.actual_payout||0);
+  const profit=actual-wager;
+  const eachWager=wager/2;
+  const eachProfit=profit/2;
+
   return <article className={`parlay ${status.toLowerCase()}`}>
-    <div className="parlayTop"><div><small>{new Date(p.created_at).toLocaleString()}</small><h3>{status==="ALIVE"?"🔥 ALIVE":status==="WON"?"🏆 WON":"❌ LOST"}</h3></div><div className="payout"><span>WAGER</span><b>{money(p.wager)}</b><span>POTENTIAL PAYOUT</span><b>{money(p.promo_adjusted_payout ?? p.potential_payout)}</b></div></div>
-    <div className="alive">{status==="ALIVE"?`${won} scored • ${alive} alive • ${legs.length} legs`:`${won}/${legs.length} legs scored`}</div>
-    <div className="legs">{legs.map((l,i)=><div className={`leg ${l.status}`} key={l.id||i}><div><b>{l.player}</b><small>{l.game} · {l.market||"Anytime TD"}</small></div><strong>{label(l.status)}</strong>{l.promo&&<em>PROMO</em>}</div>)}</div>
-    <div className="pnl"><span>50/50 split</span><span>Each wager: {money(Number(p.wager)/2)}</span></div>
+    <div className="parlayTop">
+      <div>
+        <small>{new Date(p.created_at).toLocaleString()}</small>
+        <h3>
+          {status==="ALIVE"
+            ?"🔥 ALIVE"
+            :status==="WON"
+              ?"🏆 WON"
+              :"❌ LOST"}
+        </h3>
+      </div>
+
+      <div className="payout">
+        <span>WAGER</span>
+        <b>{money(wager)}</b>
+
+        <span>POTENTIAL PAYOUT</span>
+        <b>{money(potential)}</b>
+
+        {status!=="ALIVE" && <>
+          <span>ACTUAL PAYOUT</span>
+          <b>{money(actual)}</b>
+        </>}
+      </div>
+    </div>
+
+    <div className="alive">
+      {status==="ALIVE"
+        ?`${won} scored • ${alive} alive • ${legs.length} legs`
+        :`${won}/${legs.length} legs scored`}
+    </div>
+
+    <div className="legs">
+      {legs.map((l,i)=>
+        <div
+          className={`leg ${l.status}`}
+          key={l.id||i}
+        >
+          <div>
+            <b>{l.player}</b>
+            <small>{l.game} · {l.market||"Anytime TD"}</small>
+          </div>
+
+          <strong>{label(l.status)}</strong>
+
+          {l.promo&&<em>PROMO</em>}
+        </div>
+      )}
+    </div>
+
+    <div className="pnl">
+      <span>50/50 split</span>
+      <span>Each wager: {money(eachWager)}</span>
+
+      {status!=="ALIVE" && <>
+        <span>Matt P P/L: {money(eachProfit)}</span>
+        <span>Matt B P/L: {money(eachProfit)}</span>
+        <span>Combined P/L: {money(profit)}</span>
+      </>}
+    </div>
   </article>
 }
 function label(s){return {not_started:"🕐 NOT STARTED",live:"⏳ LIVE",td_scored:"✅ TD SCORED",failed:"❌ FAILED"}[s]||s}
