@@ -1,0 +1,13 @@
+{
+  "name": "matt-matt-td-server",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}
