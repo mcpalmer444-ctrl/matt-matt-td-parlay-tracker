@@ -2,6 +2,7 @@ services:
   - type: web
     name: matt-matt-td-parlay-tracker
     runtime: node
+    plan: free
     buildCommand: npm install && npm run install:all && npm run build
     startCommand: npm start
     envVars:
@@ -14,5 +15,6 @@ services:
 
 databases:
   - name: matt-matt-td-db
+    plan: free
     databaseName: mattmatt
     user: mattmatt
