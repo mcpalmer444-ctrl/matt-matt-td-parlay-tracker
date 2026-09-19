@@ -87,8 +87,12 @@ function extractPlayerTouchdowns(summary) {
     let scorer = "";
 
     if (type.includes("passing touchdown")) {
-      scorer = text.split(" pass from ")[0].trim();
-    } else if (type.includes("rushing touchdown")) {
+  const match = text.match(/^(.+?)\s+\d+\s+Yd\s+pass from/i);
+
+  if (match) {
+    scorer = match[1].trim();
+  }
+} else if (type.includes("rushing touchdown")) {
       const match = text.match(/^(.+?)\s+\d+\s+Yd\s+Rush/i);
 
       if (match) {
