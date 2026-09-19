@@ -127,6 +127,34 @@ async function settleParlay(parlay) {
 
   return parlay;
 }
+app.post("/api/test-settlement", async (req, res) => {
+  try {
+    const parlay = req.body?.parlay;
+
+    if (!parlay || !Array.isArray(parlay.legs)) {
+      return res.status(400).json({
+        error: "Invalid test parlay"
+      });
+    }
+
+    const updatedParlay = updateParlayResult(parlay);
+
+    if (
+      updatedParlay.status === "won" ||
+      updatedParlay.status === "lost"
+    ) {
+      await settleParlay(updatedParlay);
+    }
+
+    res.json(updatedParlay);
+  } catch (error) {
+    console.error("Settlement test error:", error);
+
+    res.status(500).json({
+      error: "Settlement test failed"
+    });
+  }
+});
 app.post("/api/live-status", async (req, res) => {
   try {
     const players = Array.isArray(req.body?.players)
