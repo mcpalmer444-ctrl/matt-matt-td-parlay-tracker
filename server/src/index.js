@@ -1,4 +1,4 @@
-const { getNFLPlayerStatuses } = require("./nfl");
+import { getNFLPlayerStatuses } from "./nfl.js";
 import express from "express";
 import cors from "cors";
 import pg from "pg";
