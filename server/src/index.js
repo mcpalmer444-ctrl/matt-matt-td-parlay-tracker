@@ -73,14 +73,26 @@ function updateParlayResult(parlay) {
 async function settleParlay(parlay) {
   if (!pool) return;
 
+  const existing = await pool.query(
+    "SELECT 1 FROM bankroll_transactions WHERE note LIKE $1 LIMIT 1",
+    [`Parlay #${parlay.id} %`]
+  );
+
+  if (existing.rowCount) {
+    return;
+  }
+
   const wager = Number(parlay.wager || 0);
+
   const payout =
     parlay.status === "won"
       ? Number(parlay.potential_payout || 0)
       : 0;
 
-  const mattPAmount = (payout - wager) / 2;
-  const mattBAmount = (payout - wager) / 2;
+  const profit = payout - wager;
+
+  const mattPAmount = profit / 2;
+  const mattBAmount = profit / 2;
 
   await pool.query(
     "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
