@@ -17,6 +17,7 @@ async function fetchJson(url) {
 function normalizeName(name = "") {
   return name
     .toLowerCase()
+    .replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "")
     .replace(/[.'’-]/g, "")
     .replace(/\s+/g, " ")
     .trim();
