@@ -139,13 +139,6 @@ app.post("/api/test-settlement", async (req, res) => {
 
     const updatedParlay = updateParlayResult(parlay);
 
-    if (
-      updatedParlay.status === "won" ||
-      updatedParlay.status === "lost"
-    ) {
-      await settleParlay(updatedParlay);
-    }
-
     res.json(updatedParlay);
   } catch (error) {
     console.error("Settlement test error:", error);
