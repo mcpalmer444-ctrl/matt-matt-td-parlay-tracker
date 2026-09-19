@@ -127,14 +127,6 @@ async function settleParlay(parlay) {
 
   return parlay;
 }
-app.post("/api/test-settlement", async (req, res) => {
-  try {
-    const parlay = req.body?.parlay;
-
-    if (!parlay || !Array.isArray(parlay.legs)) {
-      return res.status(400).json({
-        error: "Invalid test parlay"
-      });
     }
 
     const updatedParlay = updateParlayResult(parlay);
