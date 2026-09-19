@@ -11,9 +11,57 @@ function App(){
   const [showAdd,setShowAdd]=useState(false);
 
   async function refresh(){
-    const r=await fetch(`${API}/api/state`);
-    if(r.ok) setState(await r.json());
+  const r=await fetch(`${API}/api/state`);
+  if(!r.ok) return;
+
+  const next=await r.json();
+
+  const liveParlays=next.parlays.filter(p=>p.status==="live");
+
+  if(liveParlays.length){
+    const players=liveParlays.flatMap(p=>
+      (p.legs||[]).map(l=>({
+        id:l.id,
+        name:l.player,
+        game:l.game,
+      }))
+    );
+
+    if(players.length){
+      const liveResponse=await fetch(`${API}/api/live-status`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({players}),
+      });
+
+      if(liveResponse.ok){
+        const liveData=await liveResponse.json();
+        const statusMap=new Map(
+          (liveData.players||[]).map(x=>[x.id,x])
+        );
+
+        next.parlays=next.parlays.map(p=>({
+          ...p,
+          legs:(p.legs||[]).map(l=>{
+            const current=statusMap.get(l.id);
+
+            if(!current) return l;
+
+            return {
+              ...l,
+              status:
+                l.status==="td_scored"
+                  ? "td_scored"
+                  : current.status,
+            };
+          }),
+        }));
+      }
+    }
   }
+
+  setState(next);
+}
   useEffect(()=>{refresh(); const t=setInterval(refresh,15000); return()=>clearInterval(t)},[]);
 
   const live=state.parlays.filter(p=>p.status==="live");
