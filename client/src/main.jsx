@@ -20,13 +20,14 @@ function App(){
 
   if(liveParlays.length){
     const players=liveParlays.flatMap(p=>
-      (p.legs||[]).map(l=>({
-        id:l.id,
-        name:l.player,
-        game:l.game,
-        team:l.game,
-      }))
-    );
+  (p.legs||[]).map(l=>({
+    id:l.id,
+    parlayId:p.id,
+    name:l.player,
+    game:l.game,
+    team:l.game,
+  }))
+);
 
     if(players.length){
       const liveResponse=await fetch(`${API}/api/live-status`,{
