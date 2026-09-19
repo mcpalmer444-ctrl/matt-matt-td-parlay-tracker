@@ -70,7 +70,30 @@ function updateParlayResult(parlay) {
   if (!legs.length) {
     return parlay;
   }
+async function settleParlay(parlay) {
+  if (!pool) return;
 
+  const wager = Number(parlay.wager || 0);
+  const payout =
+    parlay.status === "won"
+      ? Number(parlay.potential_payout || 0)
+      : 0;
+
+  const mattPAmount = (payout - wager) / 2;
+  const mattBAmount = (payout - wager) / 2;
+
+  await pool.query(
+    "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
+    [
+      "mattP",
+      mattPAmount,
+      `Parlay #${parlay.id} ${parlay.status.toUpperCase()}`,
+      "mattB",
+      mattBAmount,
+      `Parlay #${parlay.id} ${parlay.status.toUpperCase()}`
+    ]
+  );
+}
   const hasFailed = legs.some((leg) => leg.status === "failed");
   const allScored = legs.every((leg) => leg.status === "td_scored");
 
@@ -149,7 +172,12 @@ if (pool) {
       ...parlay,
       legs: updatedLegs
     });
-
+if (
+  parlay.status === "live" &&
+  (updatedParlay.status === "won" || updatedParlay.status === "lost")
+) {
+  await settleParlay(updatedParlay);
+}
     await pool.query(
       "UPDATE parlays SET status=$1, legs=$2 WHERE id=$3",
       [
