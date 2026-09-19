@@ -147,13 +147,17 @@ async function getNFLPlayerStatuses(players) {
         gameText.includes(String(player.game).toLowerCase());
 
       const playerTeam =
-        player.team &&
-        teamText.includes(String(player.team).toLowerCase());
+  player.team &&
+  game.teams.some(
+    (team) =>
+      String(team.abbreviation || "").toLowerCase() ===
+      String(player.team).toLowerCase()
+  );
 
-      if (playerGame || playerTeam) {
-        foundGame = game;
-        break;
-      }
+if (playerTeam || playerGame) {
+  foundGame = game;
+  break;
+}
     }
 
     if (!foundGame) {
