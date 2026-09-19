@@ -191,13 +191,16 @@ if (
   await settleParlay(updatedParlay);
 }
     await pool.query(
-      "UPDATE parlays SET status=$1, legs=$2 WHERE id=$3",
-      [
-        updatedParlay.status,
-        JSON.stringify(updatedLegs),
-        parlayId
-      ]
-    );
+  "UPDATE parlays SET status=$1, legs=$2, actual_payout=$3 WHERE id=$4",
+  [
+    updatedParlay.status,
+    JSON.stringify(updatedLegs),
+    updatedParlay.status === "won"
+      ? Number(updatedParlay.potential_payout || 0)
+      : 0,
+    parlayId
+  ]
+);
   }
 }
 
