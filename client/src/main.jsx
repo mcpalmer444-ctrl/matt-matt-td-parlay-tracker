@@ -197,7 +197,43 @@ function AddParlay({close,refresh}){
   onChange={e=>setText(e.target.value)}
   placeholder={"6 Picks Parlay\n\nPlayer One, Player Two, Player Three\n\nWager: $3.50\nTo Pay: $421.82"}
 /><div className="importChoices">📋 Paste text &nbsp; • &nbsp; 📸 Screenshot (next build) &nbsp; • &nbsp; 🔗 Share link (next build)</div><button className="goldBtn wide" onClick={parse}>PARSE & CONTINUE</button></>:<Manual setLegs={setLegs} setConfirm={setConfirm}/>}
-   </>:<><h3>Confirm Parlay</h3><div className="confirmList">{legs.map((l,i)=><div className="confirmRow" key={l.id||i}><b>{l.playe<div className="confirmRow" key={l.id||i}><b>{l.player}</b><input value={l.team||""} onChange={e=>setLegs(legs.map((x,j)=>j===i?{...x,team:e.target.value.toUpperCase()}:x))} placeholder="Team" maxLength={3}/><label><input type="checkbox" checked={!!l.promo} onChange={e=>setLegs(legs.map((x,j)=>j===i?{...x,promo:e.target.checked}:x))}/> Promo</label></div>}</div><div className="formGrid"><label>Wager<input type="number" value={wager} onChange={e=>setWager(e.target.value)}/></label><label>Potential payout<input type="number" value={potential} onChange={e=>setPotential(e.target.value)} /></label></div><div className="actions"><button onClick={()=>setConfirm(false)}>BACK</button><button className="goldBtn" onClick={save}>CONFIRM & GO LIVE</button></div></>}
+   </>:<><h3>Confirm Parlay</h3><div className="confirmList">
+  {legs.map((l,i)=>
+    <div className="confirmRow" key={l.id||i}>
+      <b>{l.player}</b>
+      <input
+        value={l.team||""}
+        onChange={e=>
+          setLegs(
+            legs.map((x,j)=>
+              j===i
+                ? {...x,team:e.target.value.toUpperCase()}
+                : x
+            )
+          )
+        }
+        placeholder="Team"
+        maxLength={3}
+      />
+      <label>
+        <input
+          type="checkbox"
+          checked={!!l.promo}
+          onChange={e=>
+            setLegs(
+              legs.map((x,j)=>
+                j===i
+                  ? {...x,promo:e.target.checked}
+                  : x
+              )
+            )
+          }
+        />
+        Promo
+      </label>
+    </div>
+  )}
+</div><div className="formGrid"><label>Wager<input type="number" value={wager} onChange={e=>setWager(e.target.value)}/></label><label>Potential payout<input type="number" value={potential} onChange={e=>setPotential(e.target.value)} /></label></div><div className="actions"><button onClick={()=>setConfirm(false)}>BACK</button><button className="goldBtn" onClick={save}>CONFIRM & GO LIVE</button></div></>}
  </div></div>
 }
 function Manual({setLegs,setConfirm}){const [raw,setRaw]=useState("");return <><p className="hint">Enter one player per line. The first version uses a simple manual format.</p><textarea value={raw} onChange={e=>setRaw(e.target.value)} placeholder={"Josh Jacobs | GB vs CHI\nPlayer Two | DET vs MIN"}/><button className="goldBtn wide" onClick={()=>{setLegs(raw.split(/\n/).filter(Boolean).map((x,i)=>({id:crypto.randomUUID(),player:x.split("|")[0].trim(),game:x.split("|")[1]?.trim()||"",market:"Anytime TD",status:"not_started",promo:false})));setConfirm(true)}}>CONTINUE</button></>}
