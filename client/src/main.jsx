@@ -25,7 +25,7 @@ function App(){
     parlayId:p.id,
     name:l.player,
     game:l.game,
-    team:l.game,
+    team:l.team,
   }))
 );
 
