@@ -125,19 +125,8 @@ async function settleParlay(parlay) {
     };
   }
 
-  return parlay;
+ return parlay;
 }
-    const updatedParlay = updateParlayResult(parlay);
-
-    res.json(updatedParlay);
-  } catch (error) {
-    console.error("Settlement test error:", error);
-
-    res.status(500).json({
-      error: "Settlement test failed"
-    });
-  }
-});
 app.post("/api/live-status", async (req, res) => {
   try {
     const players = Array.isArray(req.body?.players)
