@@ -199,6 +199,34 @@ function Stats({parlays}){
  return <section className="stats"><div className="sectionTitle"><h2>📊 SEASON STATS</h2></div><div className="statGrid">{[
   ["PARLAYS",done.length],["WINS",wins],["LOSSES",Math.max(0,done.length-wins)],["TOTAL WAGERED",money(wager)],["PAYOUTS",money(payouts)],["PROFIT",money(profit)]
  ].map(([a,b])=><div className="stat" key={a}><span>{a}</span><b>{b}</b></div>)}</div></section>
+
+<section className="stats seasonHistory">
+  <div className="sectionTitle">
+    <h2>🏆 SEASON HISTORY</h2>
+  </div>
+
+  <div className="statGrid">
+    <div className="stat">
+      <span>SEASON 1 START</span>
+      <b>$0.00</b>
+    </div>
+
+    <div className="stat">
+      <span>SEASON 1 FINAL</span>
+      <b>-$34.45</b>
+    </div>
+
+    <div className="stat">
+      <span>SEASON 2 START</span>
+      <b>$63.00</b>
+    </div>
+
+    <div className="stat">
+      <span>CURRENT SEASON</span>
+      <b>2 🏈</b>
+    </div>
+  </div>
+</section>
 }
 
 function AddParlay({close,refresh}){
