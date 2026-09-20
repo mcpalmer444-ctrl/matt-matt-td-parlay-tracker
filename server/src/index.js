@@ -287,7 +287,33 @@ app.patch("/api/parlays/:id", async (req,res) => {
   if (legs) p.legs = legs;
   res.json(p);
 });
+app.delete("/api/parlays/:id", async (req, res) => {
+  const id = req.params.id;
 
+  if (pool) {
+    const r = await pool.query(
+      "DELETE FROM parlays WHERE id=$1 RETURNING *",
+      [id]
+    );
+
+    if (!r.rowCount) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    return res.json(r.rows[0]);
+  }
+
+  const index = memory.parlays.findIndex(
+    x => String(x.id) === String(id)
+  );
+
+  if (index === -1) {
+    return res.status(404).json({ error: "Not found" });
+  }
+
+  const [removed] = memory.parlays.splice(index, 1);
+  res.json(removed);
+});
 app.post("/api/import/parse", (req,res) => {
   const text = String(req.body.text || "");
   // Flexible MVP parser: one leg per line. Examples:
