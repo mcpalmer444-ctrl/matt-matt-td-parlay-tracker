@@ -447,25 +447,27 @@ app.post("/api/import/parse", (req,res) => {
   let potentialPayout = null;
   let players = [];
 
-  for (const line of lines) {
-    const wagerMatch = line.match(/Wager:\s*\$?([\d,]+(?:\.\d{1,2})?)/i);
+for (const line of lines) {
+  const wagerMatch = line.match(
+    /Wager:\s*\$?([\d,]+(?:\.\d{1,2})?)/i
+  );
 
-    if (wagerMatch) {
-      wager = Number(wagerMatch[1].replace(/,/g, ""));
-      continue;
-    }
-
-    const payoutMatch = line.match(
-      /(?:To Pay|Potential Payout):\s*\$?([\d,]+(?:\.\d{1,2})?)/i
+  if (wagerMatch) {
+    wager = Number(
+      wagerMatch[1].replace(/,/g, "")
     );
-
-    if (payoutMatch) {
-      potentialPayout = Number(
-        payoutMatch[1].replace(/,/g, "")
-      );
-      continue;
-    }
   }
+
+  const payoutMatch = line.match(
+    /(?:To Pay|Potential Payout):\s*\$?([\d,]+(?:\.\d{1,2})?)/i
+  );
+
+  if (payoutMatch) {
+    potentialPayout = Number(
+      payoutMatch[1].replace(/,/g, "")
+    );
+  }
+}
 
   // DraftKings copied format:
   // Player One, Player Two, Player Three
