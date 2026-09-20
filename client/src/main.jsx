@@ -202,7 +202,7 @@ function Stats({parlays}){
 }
 
 function AddParlay({close,refresh}){
- const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[confirm,setConfirm]=useState(false);
+ const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[parlayDate,setParlayDate]=useState(""),[confirm,setConfirm]=useState(false);
  async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);if(d.wager!=null)setWager(String(d.wager));if(d.potential_payout!=null)setPotential(String(d.potential_payout));setConfirm(true)}
  async function save(){
   const r=await fetch(`${API}/api/parlays`,{
@@ -213,6 +213,7 @@ function AddParlay({close,refresh}){
       potential_payout:Number(potential||0),
       promo_adjusted_payout:Number(potential||0),
       source:mode,
+      created_at:parlayDate || undefined,
       historical,
       status:historical ? "won" : "live",
       actual_payout:historical ? Number(potential||0) : 0,
@@ -277,6 +278,16 @@ function AddParlay({close,refresh}){
   />
   📜 Historical Parlay — do not affect current bankroll
 </label>
+
+<label>
+  Parlay Date
+  <input
+    type="date"
+    value={parlayDate}
+    onChange={e=>setParlayDate(e.target.value)}
+  />
+</label>
+
 <div className="formGrid"><label>Wager<input type="number" value={wager} onChange={e=>setWager(e.target.value)}/></label><label>Potential payout<input type="number" value={potential} onChange={e=>setPotential(e.target.value)} /></label></div><div className="actions"><button onClick={()=>setConfirm(false)}>BACK</button><button className="goldBtn" onClick={save}>CONFIRM & GO LIVE</button></div></>}
  </div></div>
 }
