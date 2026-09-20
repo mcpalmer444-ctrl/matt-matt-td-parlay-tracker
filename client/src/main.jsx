@@ -237,9 +237,10 @@ function Stats({parlays}){
       </div>
 
       <div className="stat">
-        <span>SEASON 2 START</span>
-        <b>$63.00</b>
-      </div>
+  <span>SEASON 2 START</span>
+  <b>$63.00</b>
+  <small>From $2.72 → $100.17 Week 1 win</small>
+</div>
 
       <div className="stat">
         <span>CURRENT SEASON</span>
