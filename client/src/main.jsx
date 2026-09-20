@@ -113,8 +113,23 @@ function ParlayCard({p,onRefresh}){
   const profit=actual-wager;
   const eachWager=wager/2;
   const eachProfit=profit/2;
+    async function deleteParlay(){
+    if(!window.confirm("Delete this parlay?")) return;
+
+    const r=await fetch(`${API}/api/parlays/${p.id}`,{
+      method:"DELETE"
+    });
+
+    if(r.ok){
+      onRefresh();
+    }
+  }
 
   return <article className={`parlay ${status.toLowerCase()}`}>
+   <button onClick={deleteParlay}>
+  🗑️ DELETE
+</button>
+    
     <div className="parlayTop">
       <div>
         <small>{new Date(p.created_at).toLocaleString()}</small>
