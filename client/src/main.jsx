@@ -248,7 +248,6 @@ function Stats({parlays}){
   <b>$59.50</b>
   <small>$3.50 currently in play</small>
 </div>
-    </div>
   </section>
  </>
 }
