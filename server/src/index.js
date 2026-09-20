@@ -350,7 +350,7 @@ app.post("/api/parlays", async (req,res) => {
 });
 app.patch("/api/parlays/:id", async (req,res) => {
   const id = req.params.id;
-  const { status, actual_payout, legs } = req.body;
+  const { status, actual_payout, legs, created_at } = req.body;
 
   if (pool) {
     const current = await pool.query(
@@ -365,8 +365,9 @@ app.patch("/api/parlays/:id", async (req,res) => {
     const existing = current.rows[0];
 
     const updated = {
-      ...existing,
-      status: status ?? existing.status,
+  ...existing,
+  created_at: created_at ?? existing.created_at,
+  status: status ?? existing.status,
       actual_payout:
         actual_payout !== undefined
           ? Number(actual_payout)
@@ -382,13 +383,14 @@ app.patch("/api/parlays/:id", async (req,res) => {
     }
 
     const r = await pool.query(
-      "UPDATE parlays SET status=COALESCE($1,status), actual_payout=COALESCE($2,actual_payout), legs=COALESCE($3,legs) WHERE id=$4 RETURNING *",
-      [
-        status ?? null,
-        actual_payout ?? null,
-        legs ? JSON.stringify(legs) : null,
-        id
-      ]
+      "UPDATE parlays SET created_at=COALESCE($1,created_at), status=COALESCE($2,status), actual_payout=COALESCE($3,actual_payout), legs=COALESCE($4,legs) WHERE id=$5 RETURNING *",
+     [
+  created_at ?? null,
+  status ?? null,
+  actual_payout ?? null,
+  legs ? JSON.stringify(legs) : null,
+  id
+]
     );
 
     return res.json(r.rows[0]);
@@ -405,6 +407,7 @@ app.patch("/api/parlays/:id", async (req,res) => {
   const wasLive = p.status === "live";
 
   if (status) p.status = status;
+  if (created_at) p.created_at = created_at;
   if (actual_payout !== undefined) {
     p.actual_payout = Number(actual_payout);
   }
