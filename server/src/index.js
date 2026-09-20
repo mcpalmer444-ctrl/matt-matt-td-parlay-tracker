@@ -437,23 +437,47 @@ app.delete("/api/parlays/:id", async (req, res) => {
 });
 app.post("/api/import/parse", (req,res) => {
   const text = String(req.body.text || "");
-  // Flexible MVP parser: one leg per line. Examples:
-  // Josh Jacobs | GB vs CHI | Anytime TD | +120
-  const legs = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean).map((line, i) => {
-    const parts = line.split("|").map(x => x.trim());
-    return {
-      id: crypto.randomUUID(),
-      player: parts[0] || `Player ${i+1}`,
-      game: parts[1] || "",
-      market: parts[2] || "Anytime TD",
-      odds: parts[3] || "",
-      status: "not_started",
-      promo: false
-    };
-  });
-  res.json({source:"draftkings_import", legs});
-});
 
+  const lines = text
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  const legs = [];
+
+  for (const line of lines) {
+    const parts = line
+      .split("|")
+      .map(x => x.trim())
+      .filter(Boolean);
+
+    if (parts.length >= 2) {
+      const player = parts[0];
+
+      const looksLikePlayer = !/^(parlay|same game parlay|sgp|anytime td|touchdown|total|spread|moneyline|stake|payout|odds)$/i.test(player);
+
+      if (!looksLikePlayer) {
+        continue;
+      }
+
+      legs.push({
+        id: crypto.randomUUID(),
+        player,
+        game: parts[1] || "",
+        market: parts[2] || "Anytime TD",
+        odds: parts[3] || "",
+        status: "not_started",
+        touchdowns: 0,
+        promo: false
+      });
+    }
+  }
+
+  res.json({
+    source: "draftkings_import",
+    legs
+  });
+});
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(clientDist));
   app.get("*splat", (_req,res) => res.sendFile(path.join(clientDist, "index.html")));
