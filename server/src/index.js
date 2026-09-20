@@ -274,19 +274,78 @@ await pool.query(
 app.patch("/api/parlays/:id", async (req,res) => {
   const id = req.params.id;
   const { status, actual_payout, legs } = req.body;
+
   if (pool) {
+    const current = await pool.query(
+      "SELECT * FROM parlays WHERE id=$1",
+      [id]
+    );
+
+    if (!current.rowCount) {
+      return res.status(404).json({error:"Not found"});
+    }
+
+    const existing = current.rows[0];
+
+    const updated = {
+      ...existing,
+      status: status ?? existing.status,
+      actual_payout:
+        actual_payout !== undefined
+          ? Number(actual_payout)
+          : Number(existing.actual_payout || 0),
+      legs: legs ?? existing.legs
+    };
+
+    if (
+      existing.status === "live" &&
+      (updated.status === "won" || updated.status === "lost")
+    ) {
+      await settleParlay(updated);
+    }
+
     const r = await pool.query(
       "UPDATE parlays SET status=COALESCE($1,status), actual_payout=COALESCE($2,actual_payout), legs=COALESCE($3,legs) WHERE id=$4 RETURNING *",
-      [status ?? null, actual_payout ?? null, legs ? JSON.stringify(legs) : null, id]
+      [
+        status ?? null,
+        actual_payout ?? null,
+        legs ? JSON.stringify(legs) : null,
+        id
+      ]
     );
-    if (!r.rowCount) return res.status(404).json({error:"Not found"});
+
     return res.json(r.rows[0]);
   }
-  const p = memory.parlays.find(x => String(x.id) === String(id));
-  if (!p) return res.status(404).json({error:"Not found"});
+
+  const p = memory.parlays.find(
+    x => String(x.id) === String(id)
+  );
+
+  if (!p) {
+    return res.status(404).json({error:"Not found"});
+  }
+
+  const wasLive = p.status === "live";
+
   if (status) p.status = status;
-  if (actual_payout !== undefined) p.actual_payout = Number(actual_payout);
+  if (actual_payout !== undefined) {
+    p.actual_payout = Number(actual_payout);
+  }
   if (legs) p.legs = legs;
+
+  if (
+    wasLive &&
+    (p.status === "won" || p.status === "lost")
+  ) {
+    const payout =
+      p.status === "won"
+        ? Number(p.actual_payout || 0)
+        : 0;
+
+    memory.bankroll.mattP += payout / 2;
+    memory.bankroll.mattB += payout / 2;
+  }
+
   res.json(p);
 });
 app.delete("/api/parlays/:id", async (req, res) => {
