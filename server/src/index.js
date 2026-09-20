@@ -25,6 +25,7 @@ const memory = {
 
 async function initDb() {
   if (!pool) return;
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS bankroll_transactions (
       id SERIAL PRIMARY KEY,
@@ -33,6 +34,7 @@ async function initDb() {
       note TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
+
     CREATE TABLE IF NOT EXISTS parlays (
       id SERIAL PRIMARY KEY,
       created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -42,8 +44,12 @@ async function initDb() {
       status TEXT NOT NULL DEFAULT 'live',
       promo_adjusted_payout NUMERIC(12,2),
       source TEXT DEFAULT 'manual',
+      historical BOOLEAN DEFAULT FALSE,
       legs JSONB NOT NULL
     );
+
+    ALTER TABLE parlays
+    ADD COLUMN IF NOT EXISTS historical BOOLEAN DEFAULT FALSE;
   `);
 }
 
