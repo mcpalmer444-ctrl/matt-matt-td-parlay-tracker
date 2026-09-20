@@ -188,7 +188,7 @@ function Stats({parlays}){
 
 function AddParlay({close,refresh}){
  const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[confirm,setConfirm]=useState(false);
- async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);setConfirm(true)}
+ async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);if(d.wager!=null)setWager(String(d.wager));if(d.potential_payout!=null)setPotential(String(d.potential_payout));setConfirm(true)}
  async function save(){const r=await fetch(`${API}/api/parlays`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({wager:Number(wager),potential_payout:Number(potential||0),promo_adjusted_payout:Number(potential||0),source:mode,legs})}); if(r.ok){await refresh();close()}}
  return <div className="modal"><div className="modalBox"><div className="modalHead"><h2>➕ ADD PARLAY</h2><button onClick={close}>×</button></div>
    {!confirm?<><div className="modeRow">{["import","manual"].map(x=><button className={mode===x?"active":""} onClick={()=>setMode(x)} key={x}>{x==="import"?"📥 DraftKings Import":"✍️ Manual Entry"}</button>)}</div>
