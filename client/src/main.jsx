@@ -196,6 +196,7 @@ function label(s){return {not_started:"🕐 NOT STARTED",live:"⏳ LIVE",td_scor
 
 function Stats({parlays}){
  const done=parlays.filter(p=>p.status!=="live"), wins=done.filter(p=>p.status==="won").length, wager=done.reduce((a,p)=>a+Number(p.wager||0),0), payouts=done.reduce((a,p)=>a+Number(p.actual_payout||0),0), profit=payouts-wager;
+
  return <>
   <section className="stats">
     <div className="sectionTitle">
@@ -246,34 +247,7 @@ function Stats({parlays}){
       </div>
     </div>
   </section>
-</>
-}
-  <div className="sectionTitle">
-    <h2>🏆 SEASON HISTORY</h2>
-  </div>
-
-  <div className="statGrid">
-    <div className="stat">
-      <span>SEASON 1 START</span>
-      <b>$0.00</b>
-    </div>
-
-    <div className="stat">
-      <span>SEASON 1 FINAL</span>
-      <b>-$34.45</b>
-    </div>
-
-    <div className="stat">
-      <span>SEASON 2 START</span>
-      <b>$63.00</b>
-    </div>
-
-    <div className="stat">
-      <span>CURRENT SEASON</span>
-      <b>2 🏈</b>
-    </div>
-  </div>
-</section>
+ </>
 }
 
 function AddParlay({close,refresh}){
