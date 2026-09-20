@@ -89,10 +89,13 @@ async function settleParlay(parlay) {
       ? Number(parlay.potential_payout || 0)
       : 0;
 
-  const profit = payout - wager;
+  const settlementAmount =
+  parlay.status === "won"
+    ? payout
+    : 0;
 
-  const mattPAmount = profit / 2;
-  const mattBAmount = profit / 2;
+const mattPAmount = settlementAmount / 2;
+const mattBAmount = settlementAmount / 2;
 
   await pool.query(
     "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
@@ -243,6 +246,19 @@ app.post("/api/parlays", async (req,res) => {
     legs: p.legs
   };
   if (pool) {
+    const halfWager = -Number(parlay.wager) / 2;
+
+await pool.query(
+  "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
+  [
+    "mattP",
+    halfWager,
+    `Parlay #NEW wager`,
+    "mattB",
+    halfWager,
+    `Parlay #NEW wager`
+  ]
+);
     const r = await pool.query(
       "INSERT INTO parlays(wager,potential_payout,actual_payout,status,promo_adjusted_payout,source,legs) VALUES($1,$2,0,'live',$3,$4,$5) RETURNING *",
       [parlay.wager, parlay.potential_payout, parlay.promo_adjusted_payout, parlay.source, JSON.stringify(parlay.legs)]
