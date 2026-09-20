@@ -187,9 +187,29 @@ function Stats({parlays}){
 }
 
 function AddParlay({close,refresh}){
- const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[confirm,setConfirm]=useState(false);
+ const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[confirm,setConfirm]=useState(false);
  async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);if(d.wager!=null)setWager(String(d.wager));if(d.potential_payout!=null)setPotential(String(d.potential_payout));setConfirm(true)}
- async function save(){const r=await fetch(`${API}/api/parlays`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({wager:Number(wager),potential_payout:Number(potential||0),promo_adjusted_payout:Number(potential||0),source:mode,legs})}); if(r.ok){await refresh();close()}}
+ async function save(){
+  const r=await fetch(`${API}/api/parlays`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      wager:Number(wager),
+      potential_payout:Number(potential||0),
+      promo_adjusted_payout:Number(potential||0),
+      source:mode,
+      historical,
+      status:historical ? "won" : "live",
+      actual_payout:historical ? Number(potential||0) : 0,
+      legs
+    })
+  });
+
+  if(r.ok){
+    await refresh();
+    close();
+  }
+}
  return <div className="modal"><div className="modalBox"><div className="modalHead"><h2>➕ ADD PARLAY</h2><button onClick={close}>×</button></div>
    {!confirm?<><div className="modeRow">{["import","manual"].map(x=><button className={mode===x?"active":""} onClick={()=>setMode(x)} key={x}>{x==="import"?"📥 DraftKings Import":"✍️ Manual Entry"}</button>)}</div>
    {mode==="import"?<><p className="hint">Paste the DraftKings bet text below. One leg per line: <code>Player | Game | Anytime TD | Odds</code></p><textarea
@@ -233,11 +253,22 @@ function AddParlay({close,refresh}){
       </label>
     </div>
   )}
-</div><div className="formGrid"><label>Wager<input type="number" value={wager} onChange={e=>setWager(e.target.value)}/></label><label>Potential payout<input type="number" value={potential} onChange={e=>setPotential(e.target.value)} /></label></div><div className="actions"><button onClick={()=>setConfirm(false)}>BACK</button><button className="goldBtn" onClick={save}>CONFIRM & GO LIVE</button></div></>}
+</div>
+<label>
+  <input
+    type="checkbox"
+    checked={historical}
+    onChange={e=>setHistorical(e.target.checked)}
+  />
+  📜 Historical Parlay — do not affect current bankroll
+</label>
+<div className="formGrid"><label>Wager<input type="number" value={wager} onChange={e=>setWager(e.target.value)}/></label><label>Potential payout<input type="number" value={potential} onChange={e=>setPotential(e.target.value)} /></label></div><div className="actions"><button onClick={()=>setConfirm(false)}>BACK</button><button className="goldBtn" onClick={save}>CONFIRM & GO LIVE</button></div></>}
  </div></div>
 }
 function Manual({setLegs,setConfirm}){const [raw,setRaw]=useState("");return <><p className="hint">Enter one player per line. The first version uses a simple manual format.</p><textarea value={raw} onChange={e=>setRaw(e.target.value)} placeholder={"Josh Jacobs | GB vs CHI\nPlayer Two | DET vs MIN"}/><button className="goldBtn wide" onClick={()=>{setLegs(raw.split(/\n/).filter(Boolean).map((x,i)=>({id:crypto.randomUUID(),player:x.split("|")[0].trim(),game:x.split("|")[1]?.trim()||"",market:"Anytime TD",status:"not_started",promo:false})));setConfirm(true)}}>CONTINUE</button></>}
 
-function Bankroll({state,refresh}){const [person,setPerson]=useState("mattP"),[amount,setAmount]=useState(""),[note,setNote]=useState("");async function add(sign){await fetch(`${API}/api/transactions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({person,amount:sign*Number(amount),note})});setAmount("");setNote("");refresh()}return <><div className="sectionTitle"><h2>💰 BANKROLL</h2></div><div className="panel"><div className="statGrid"><div className="stat"><span>MATT P</span><b>{money(state.bankroll.mattP)}</b></div><div className="stat"><span>MATT B</span><b>{money(state.bankroll.mattB)}</b></div></div><div className="formGrid"><label>Person<select value={person} onChange={e=>setPerson(e.target.value)}><option value="mattP">Matt P</option><option value="mattB">Matt B</option></select></label><label>Amount<input type="number" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="20"/></label></div><label>Note<input value={note} onChange={e=>setNote(e.target.value)} placeholder="Optional"/></label><div className="actions"><button onClick={()=>add(1)}>＋ ADD MONEY</button><button onClick={()=>add(-1)}>− REMOVE MONEY</button></div></div></>}
+function Bankroll({state,refresh}){const [person,setPerson]=useState("mattP"),[amount,setAmount]=useState(""),[note,setNote]=useState("");async function add(sign){await fetch(`${API}/api/transactions`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({person,amount:sign*Number(amount),note})});setAmount("");setNote("");refresh()}return <><div className="sectionTitle"><h2>💰 BANKROLL</h2></div><div className="panel"><div className="statGrid"><div className="stat"><span>MATT P</span><b>{money(state.bankroll.mattP)}</b></div><div className="stat"><span>MATT B</span><b>{money(state.bankroll.mattB)}</b></div></div>
+
+<div className="formGrid"><label>Person<select value={person} onChange={e=>setPerson(e.target.value)}><option value="mattP">Matt P</option><option value="mattB">Matt B</option></select></label><label>Amount<input type="number" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="20"/></label></div><label>Note<input value={note} onChange={e=>setNote(e.target.value)} placeholder="Optional"/></label><div className="actions"><button onClick={()=>add(1)}>＋ ADD MONEY</button><button onClick={()=>add(-1)}>− REMOVE MONEY</button></div></div></>}
 
 createRoot(document.getElementById("root")).render(<App/>);
