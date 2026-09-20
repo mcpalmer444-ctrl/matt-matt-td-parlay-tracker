@@ -264,7 +264,13 @@ app.post("/api/parlays", async (req,res) => {
     promo_adjusted_payout: p.promo_adjusted_payout ?? null,
     source: p.source || "manual",
     historical,
-    legs: p.legs
+    legs: historical
+  ? p.legs.map(leg => ({
+      ...leg,
+      status: "td_scored",
+      touchdowns: Math.max(Number(leg.touchdowns || 0), 1)
+    }))
+  : p.legs
   };
 
   if (pool) {
