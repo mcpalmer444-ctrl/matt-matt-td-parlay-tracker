@@ -249,69 +249,96 @@ app.post("/api/parlays", async (req,res) => {
     });
   }
 
+  const historical = Boolean(p.historical);
+
   const parlay = {
     id: Date.now(),
     created_at: new Date().toISOString(),
     wager: Number(p.wager),
     potential_payout: Number(p.potential_payout || 0),
-    actual_payout: 0,
-    status: "live",
+    actual_payout:
+      historical && p.status === "won"
+        ? Number(p.actual_payout || p.potential_payout || 0)
+        : 0,
+    status: historical ? (p.status || "won") : "live",
     promo_adjusted_payout: p.promo_adjusted_payout ?? null,
     source: p.source || "manual",
+    historical,
     legs: p.legs
   };
 
   if (pool) {
     const r = await pool.query(
-      "INSERT INTO parlays(wager,potential_payout,actual_payout,status,promo_adjusted_payout,source,legs) VALUES($1,$2,0,'live',$3,$4,$5) RETURNING *",
+      `INSERT INTO parlays(
+        wager,
+        potential_payout,
+        actual_payout,
+        status,
+        promo_adjusted_payout,
+        source,
+        historical,
+        legs
+      )
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+      RETURNING *`,
       [
         parlay.wager,
         parlay.potential_payout,
+        parlay.actual_payout,
+        parlay.status,
         parlay.promo_adjusted_payout,
         parlay.source,
+        parlay.historical,
         JSON.stringify(parlay.legs)
       ]
     );
 
     const created = r.rows[0];
-    const halfWager = -Number(created.wager) / 2;
 
-    await pool.query(
-      "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
-      [
-        "mattP",
-        halfWager,
-        `Parlay #${created.id} wager`,
-        "mattB",
-        halfWager,
-        `Parlay #${created.id} wager`
-      ]
-    );
+    // Historical parlays document past results.
+    // They do NOT change the current bankroll.
+    if (!created.historical) {
+      const halfWager = -Number(created.wager) / 2;
+
+      await pool.query(
+        "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
+        [
+          "mattP",
+          halfWager,
+          `Parlay #${created.id} wager`,
+          "mattB",
+          halfWager,
+          `Parlay #${created.id} wager`
+        ]
+      );
+    }
 
     return res.json(created);
   }
 
   memory.parlays.unshift(parlay);
 
-  memory.bankroll.mattP -= parlay.wager / 2;
-  memory.bankroll.mattB -= parlay.wager / 2;
+  if (!parlay.historical) {
+    memory.bankroll.mattP -= parlay.wager / 2;
+    memory.bankroll.mattB -= parlay.wager / 2;
 
-  memory.transactions.unshift(
-    {
-      id: Date.now(),
-      person: "mattP",
-      amount: -(parlay.wager / 2),
-      note: `Parlay #${parlay.id} wager`,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: Date.now() + 1,
-      person: "mattB",
-      amount: -(parlay.wager / 2),
-      note: `Parlay #${parlay.id} wager`,
-      created_at: new Date().toISOString()
-    }
-  );
+    memory.transactions.unshift(
+      {
+        id: Date.now(),
+        person: "mattP",
+        amount: -(parlay.wager / 2),
+        note: `Parlay #${parlay.id} wager`,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: Date.now() + 1,
+        person: "mattB",
+        amount: -(parlay.wager / 2),
+        note: `Parlay #${parlay.id} wager`,
+        created_at: new Date().toISOString()
+      }
+    );
+  }
 
   res.json(parlay);
 });
