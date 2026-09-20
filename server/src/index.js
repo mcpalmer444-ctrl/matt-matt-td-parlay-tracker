@@ -73,10 +73,12 @@ function updateParlayResult(parlay) {
 async function settleParlay(parlay) {
   if (!pool) return;
 
-  const existing = await pool.query(
-    "SELECT 1 FROM bankroll_transactions WHERE note LIKE $1 LIMIT 1",
-    [`Parlay #${parlay.id} %`]
-  );
+  const settlementNote = `Parlay #${parlay.id} ${parlay.status.toUpperCase()}`;
+
+const existing = await pool.query(
+  "SELECT 1 FROM bankroll_transactions WHERE note = $1 LIMIT 1",
+  [settlementNote]
+);
 
   if (existing.rowCount) {
     return;
@@ -300,7 +302,23 @@ app.delete("/api/parlays/:id", async (req, res) => {
       return res.status(404).json({ error: "Not found" });
     }
 
-    return res.json(r.rows[0]);
+    const removed = r.rows[0];
+
+    if (removed.status === "live") {
+      await pool.query(
+        "INSERT INTO bankroll_transactions(person, amount, note) VALUES ($1,$2,$3),($4,$5,$6)",
+        [
+          "mattP",
+          Number(removed.wager) / 2,
+          `Refund deleted parlay #${removed.id}`,
+          "mattB",
+          Number(removed.wager) / 2,
+          `Refund deleted parlay #${removed.id}`
+        ]
+      );
+    }
+
+    return res.json(removed);
   }
 
   const index = memory.parlays.findIndex(
@@ -312,6 +330,12 @@ app.delete("/api/parlays/:id", async (req, res) => {
   }
 
   const [removed] = memory.parlays.splice(index, 1);
+
+  if (removed.status === "live") {
+    memory.bankroll.mattP += Number(removed.wager) / 2;
+    memory.bankroll.mattB += Number(removed.wager) / 2;
+  }
+
   res.json(removed);
 });
 app.post("/api/import/parse", (req,res) => {
