@@ -253,7 +253,7 @@ app.post("/api/parlays", async (req,res) => {
 
   const parlay = {
     id: Date.now(),
-    created_at: new Date().toISOString(),
+    created_at: p.created_at || new Date().toISOString(),
     wager: Number(p.wager),
     potential_payout: Number(p.potential_payout || 0),
     actual_payout:
