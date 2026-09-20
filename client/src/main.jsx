@@ -225,27 +225,29 @@ function Stats({parlays}){
       <h2>🏆 SEASON HISTORY</h2>
     </div>
 
-    <div className="statGrid">
-      <div className="stat">
-        <span>SEASON 1 START</span>
-        <b>$0.00</b>
-      </div>
-
-      <div className="stat">
-        <span>SEASON 1 FINAL</span>
-        <b>-$34.45</b>
-      </div>
-
-      <div className="stat">
-  <span>SEASON 2 START</span>
-  <b>$63.00</b>
-  <small>From $2.72 → $100.17 Week 1 win</small>
+    <div className="stat">
+  <span>SEASON 1 RESULT</span>
+  <b>-$34.45</b>
+  <small>Final result</small>
 </div>
 
       <div className="stat">
-        <span>CURRENT SEASON</span>
-        <b>2 🏈</b>
-      </div>
+  <span>SEASON 2 OPENING WIN</span>
+  <b>+$97.45</b>
+  <small>$2.72 wager → $100.17 payout</small>
+</div>
+
+      <div className="stat">
+  <span>CURRENT SEASON 2</span>
+  <b>+$63.00</b>
+  <small>Current season profit</small>
+</div>
+
+      <div className="stat">
+  <span>AVAILABLE BANKROLL</span>
+  <b>$59.50</b>
+  <small>$3.50 currently in play</small>
+</div>
     </div>
   </section>
  </>
