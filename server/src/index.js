@@ -127,8 +127,6 @@ async function settleParlay(parlay) {
 
   return parlay;
 }
-    }
-
     const updatedParlay = updateParlayResult(parlay);
 
     res.json(updatedParlay);
