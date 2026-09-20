@@ -509,15 +509,16 @@ for (const line of lines) {
   }
 
   const legs = players.map(player => ({
-    id: crypto.randomUUID(),
-    player,
-    game: "",
-    market: "Anytime TD",
-    odds: "",
-    status: "not_started",
-    touchdowns: 0,
-    promo: false
-  }));
+  id: crypto.randomUUID(),
+  player,
+  team: "",
+  game: "",
+  market: "Anytime TD",
+  odds: "",
+  status: "not_started",
+  touchdowns: 0,
+  promo: false
+}));
 
   res.json({
     source: "draftkings_import",
