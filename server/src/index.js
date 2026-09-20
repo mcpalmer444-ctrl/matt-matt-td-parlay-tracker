@@ -443,38 +443,84 @@ app.post("/api/import/parse", (req,res) => {
     .map(line => line.trim())
     .filter(Boolean);
 
-  const legs = [];
+  let wager = null;
+  let potentialPayout = null;
+  let players = [];
 
   for (const line of lines) {
-    const parts = line
-      .split("|")
-      .map(x => x.trim())
-      .filter(Boolean);
+    const wagerMatch = line.match(/Wager:\s*\$?([\d,]+(?:\.\d{1,2})?)/i);
 
-    if (parts.length >= 2) {
-      const player = parts[0];
+    if (wagerMatch) {
+      wager = Number(wagerMatch[1].replace(/,/g, ""));
+      continue;
+    }
 
-      const looksLikePlayer = !/^(parlay|same game parlay|sgp|anytime td|touchdown|total|spread|moneyline|stake|payout|odds)$/i.test(player);
+    const payoutMatch = line.match(
+      /(?:To Pay|Potential Payout):\s*\$?([\d,]+(?:\.\d{1,2})?)/i
+    );
 
-      if (!looksLikePlayer) {
-        continue;
-      }
-
-      legs.push({
-        id: crypto.randomUUID(),
-        player,
-        game: parts[1] || "",
-        market: parts[2] || "Anytime TD",
-        odds: parts[3] || "",
-        status: "not_started",
-        touchdowns: 0,
-        promo: false
-      });
+    if (payoutMatch) {
+      potentialPayout = Number(
+        payoutMatch[1].replace(/,/g, "")
+      );
+      continue;
     }
   }
 
+  // DraftKings copied format:
+  // Player One, Player Two, Player Three
+  const playerLine = lines.find(line => {
+    if (!line.includes(",")) return false;
+
+    return !/^(wager|to pay|potential payout|stake|open|closed)/i.test(line);
+  });
+
+  if (playerLine) {
+    players = playerLine
+      .split(",")
+      .map(name => name.trim())
+      .filter(Boolean);
+  }
+
+  // Keep support for the original pipe-separated format.
+  if (!players.length) {
+    for (const line of lines) {
+      const parts = line
+        .split("|")
+        .map(x => x.trim())
+        .filter(Boolean);
+
+      if (parts.length >= 2) {
+        const player = parts[0];
+
+        if (
+          /^(parlay|same game parlay|sgp|anytime td|touchdown|total|spread|moneyline|stake|payout|odds)$/i.test(
+            player
+          )
+        ) {
+          continue;
+        }
+
+        players.push(player);
+      }
+    }
+  }
+
+  const legs = players.map(player => ({
+    id: crypto.randomUUID(),
+    player,
+    game: "",
+    market: "Anytime TD",
+    odds: "",
+    status: "not_started",
+    touchdowns: 0,
+    promo: false
+  }));
+
   res.json({
     source: "draftkings_import",
+    wager,
+    potential_payout: potentialPayout,
     legs
   });
 });
