@@ -230,12 +230,19 @@ app.post("/api/transactions", async (req,res) => {
   }
   res.json(await getState());
 });
-
 app.post("/api/parlays", async (req,res) => {
   const p = req.body;
-  if (!Array.isArray(p.legs) || !p.legs.length || !Number.isFinite(Number(p.wager))) {
-    return res.status(400).json({error:"Parlay needs legs and wager"});
+
+  if (
+    !Array.isArray(p.legs) ||
+    !p.legs.length ||
+    !Number.isFinite(Number(p.wager))
+  ) {
+    return res.status(400).json({
+      error: "Parlay needs legs and wager"
+    });
   }
+
   const parlay = {
     id: Date.now(),
     created_at: new Date().toISOString(),
@@ -247,30 +254,61 @@ app.post("/api/parlays", async (req,res) => {
     source: p.source || "manual",
     legs: p.legs
   };
-  if (pool) {
-    const halfWager = -Number(parlay.wager) / 2;
 
-await pool.query(
-  "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
-  [
-    "mattP",
-    halfWager,
-    `Parlay #NEW wager`,
-    "mattB",
-    halfWager,
-    `Parlay #NEW wager`
-  ]
-);
+  if (pool) {
     const r = await pool.query(
       "INSERT INTO parlays(wager,potential_payout,actual_payout,status,promo_adjusted_payout,source,legs) VALUES($1,$2,0,'live',$3,$4,$5) RETURNING *",
-      [parlay.wager, parlay.potential_payout, parlay.promo_adjusted_payout, parlay.source, JSON.stringify(parlay.legs)]
+      [
+        parlay.wager,
+        parlay.potential_payout,
+        parlay.promo_adjusted_payout,
+        parlay.source,
+        JSON.stringify(parlay.legs)
+      ]
     );
-    return res.json(r.rows[0]);
+
+    const created = r.rows[0];
+    const halfWager = -Number(created.wager) / 2;
+
+    await pool.query(
+      "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
+      [
+        "mattP",
+        halfWager,
+        `Parlay #${created.id} wager`,
+        "mattB",
+        halfWager,
+        `Parlay #${created.id} wager`
+      ]
+    );
+
+    return res.json(created);
   }
+
   memory.parlays.unshift(parlay);
+
+  memory.bankroll.mattP -= parlay.wager / 2;
+  memory.bankroll.mattB -= parlay.wager / 2;
+
+  memory.transactions.unshift(
+    {
+      id: Date.now(),
+      person: "mattP",
+      amount: -(parlay.wager / 2),
+      note: `Parlay #${parlay.id} wager`,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: Date.now() + 1,
+      person: "mattB",
+      amount: -(parlay.wager / 2),
+      note: `Parlay #${parlay.id} wager`,
+      created_at: new Date().toISOString()
+    }
+  );
+
   res.json(parlay);
 });
-
 app.patch("/api/parlays/:id", async (req,res) => {
   const id = req.params.id;
   const { status, actual_payout, legs } = req.body;
