@@ -182,11 +182,17 @@ async function getNFLPlayerStatuses(players) {
 
       const playerTeam =
   player.team &&
-  game.teams.some(
-    (team) =>
-      String(team.abbreviation || "").toLowerCase() ===
-      String(player.team).toLowerCase()
-  );
+  game.teams.some((team) => {
+    const espnTeam = String(team.abbreviation || "").toLowerCase();
+    const playerTeamCode = String(player.team).toLowerCase();
+
+    const aliases = {
+      was: "wsh",
+      wsh: "wsh",
+    };
+
+    return espnTeam === (aliases[playerTeamCode] || playerTeamCode);
+  });
 
 if (playerTeam || playerGame) {
   foundGame = game;
