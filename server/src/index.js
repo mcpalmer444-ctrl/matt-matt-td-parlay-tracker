@@ -144,27 +144,7 @@ async function settleParlay(parlay) {
     ]
   );
 }
-  const hasFailed = legs.some((leg) => leg.status === "failed");
-  const allScored = legs.every((leg) => leg.status === "td_scored");
 
-  if (hasFailed) {
-    return {
-      ...parlay,
-      status: "lost",
-      result: "LOSS",
-    };
-  }
-
-  if (allScored) {
-    return {
-      ...parlay,
-      status: "won",
-      result: "WIN",
-    };
-  }
-
- return parlay;
-}
 app.post("/api/live-status", async (req, res) => {
   try {
     const players = Array.isArray(req.body?.players)
