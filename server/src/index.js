@@ -76,21 +76,48 @@ function updateParlayResult(parlay) {
   if (!legs.length) {
     return parlay;
   }
+
+  const hasFailed = legs.some(
+    (leg) => leg.status === "failed"
+  );
+
+  const allScored = legs.every(
+    (leg) => leg.status === "td_scored"
+  );
+
+  if (hasFailed) {
+    return {
+      ...parlay,
+      status: "lost",
+      result: "LOSS",
+    };
+  }
+
+  if (allScored) {
+    return {
+      ...parlay,
+      status: "won",
+      result: "WIN",
+    };
+  }
+
+  return parlay;
+}
+
 async function settleParlay(parlay) {
   if (!pool) return;
 
-  const settlementNote = `Parlay #${parlay.id} ${parlay.status.toUpperCase()}`;
+  const settlementNote =
+    `Parlay #${parlay.id} ${parlay.status.toUpperCase()}`;
 
-const existing = await pool.query(
-  "SELECT 1 FROM bankroll_transactions WHERE note = $1 LIMIT 1",
-  [settlementNote]
-);
+  const existing = await pool.query(
+    "SELECT 1 FROM bankroll_transactions WHERE note = $1 LIMIT 1",
+    [settlementNote]
+  );
 
   if (existing.rowCount) {
     return;
   }
-
-  const wager = Number(parlay.wager || 0);
 
   const payout =
     parlay.status === "won"
@@ -98,12 +125,12 @@ const existing = await pool.query(
       : 0;
 
   const settlementAmount =
-  parlay.status === "won"
-    ? payout
-    : 0;
+    parlay.status === "won"
+      ? payout
+      : 0;
 
-const mattPAmount = settlementAmount / 2;
-const mattBAmount = settlementAmount / 2;
+  const mattPAmount = settlementAmount / 2;
+  const mattBAmount = settlementAmount / 2;
 
   await pool.query(
     "INSERT INTO bankroll_transactions(person, amount, note) VALUES($1,$2,$3),($4,$5,$6)",
