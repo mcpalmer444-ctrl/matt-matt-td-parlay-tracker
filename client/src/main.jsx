@@ -239,14 +239,14 @@ function Stats({parlays}){
 
       <div className="stat">
   <span>CURRENT SEASON 2</span>
-  <b>+$63.00</b>
+  <b>+$59.50</b>
   <small>Current season profit</small>
 </div>
 
       <div className="stat">
   <span>AVAILABLE BANKROLL</span>
   <b>$59.50</b>
-  <small>$3.50 currently in play</small>
+  <small>$0.00 currently in play</small>
 </div>
   </section>
  </>
