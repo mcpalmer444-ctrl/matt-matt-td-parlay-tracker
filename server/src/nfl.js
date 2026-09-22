@@ -57,9 +57,36 @@ function gameTeams(event) {
 }
 
 async function getNFLScoreboard() {
-  const data = await fetchJson(ESPN_SCOREBOARD);
+  const dates = [];
 
-  return (data.events || []).map((event) => ({
+  for (let i = 0; i <= 7; i++) {
+    const date = new Date();
+    date.setDate(date.getDate() - i);
+
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+
+    dates.push(`${year}${month}${day}`);
+  }
+
+  const responses = await Promise.all(
+    dates.map((date) =>
+      fetchJson(`${ESPN_SCOREBOARD}?dates=${date}`)
+    )
+  );
+
+  const events = responses.flatMap(
+    (data) => data.events || []
+  );
+
+  const uniqueEvents = [
+    ...new Map(
+      events.map((event) => [String(event.id), event])
+    ).values()
+  ];
+
+  return uniqueEvents.map((event) => ({
     id: String(event.id),
     name: event.name || "",
     shortName: event.shortName || "",
