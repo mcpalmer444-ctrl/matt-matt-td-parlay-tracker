@@ -30,17 +30,23 @@ function gameStatus(event) {
     return "not_started";
   }
 
-  if (status.completed) {
+  if (
+    status.completed === true ||
+    status.state === "post" ||
+    status.name === "STATUS_FINAL"
+  ) {
     return "final";
   }
 
-  if (status.state === "in") {
+  if (
+    status.state === "in" ||
+    status.name === "STATUS_IN_PROGRESS"
+  ) {
     return "live";
   }
 
   return "not_started";
 }
-
 function gameTeams(event) {
   const competition = event?.competitions?.[0];
 
