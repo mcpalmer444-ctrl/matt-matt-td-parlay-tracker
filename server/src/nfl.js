@@ -171,18 +171,35 @@ if (playerTeam || playerGame) {
       continue;
     }
 
-    if (foundGame.status === "not_started") {
-      statuses.push({
-        ...player,
-        status: "not_started",
-        touchdowns: 0,
-        gameId: foundGame.id,
-      });
+    const gameState = String(
+  foundGame.status ||
+  foundGame.rawStatus ||
+  ""
+).toLowerCase();
 
-      continue;
-    }
+const gameCompleted =
+  gameState === "final" ||
+  gameState === "post" ||
+  gameState === "completed";
 
-    if (foundGame.status === "final") {
+if (gameCompleted) {
+  const summary = await getGameSummary(foundGame.id);
+  const touchdownMap = extractPlayerTouchdowns(summary);
+
+  touchdowns =
+    touchdownMap.get(player.normalizedName)?.touchdowns || 0;
+
+  statuses.push({
+    ...player,
+    status: touchdowns > 0 ? "td_scored" : "failed",
+    touchdowns,
+    gameId: foundGame.id,
+  });
+
+  continue;
+}
+
+if (foundGame.status === "not_started") {
       const summary = await getGameSummary(foundGame.id);
       const touchdownMap = extractPlayerTouchdowns(summary);
 
