@@ -226,28 +226,28 @@ function Stats({parlays}){
     </div>
 
     <div className="stat">
-  <span>SEASON 1 RESULT</span>
-  <b>-$34.45</b>
-  <small>Final result</small>
-</div>
+      <span>SEASON 1 FINAL</span>
+      <b>-$34.45</b>
+      <small>Finished Season 1 down $34.45</small>
+    </div>
 
-      <div className="stat">
-  <span>SEASON 2 OPENING WIN</span>
-  <b>+$97.45</b>
-  <small>$2.72 wager → $100.17 payout</small>
-</div>
+    <div className="stat">
+      <span>SEASON 2 PROFIT</span>
+      <b>+$93.95</b>
+      <small>+$97.45 opening win − $3.50 recent loss</small>
+    </div>
 
-      <div className="stat">
-  <span>CURRENT SEASON 2</span>
-  <b>+$59.50</b>
-  <small>Current season profit</small>
-</div>
+    <div className="stat">
+      <span>CURRENT BANKROLL</span>
+      <b>$59.50</b>
+      <small>$93.95 Season 2 profit − $34.45 Season 1 deficit</small>
+    </div>
 
-      <div className="stat">
-  <span>AVAILABLE BANKROLL</span>
-  <b>$59.50</b>
-  <small>$0.00 currently in play</small>
-</div>
+    <div className="stat">
+      <span>CURRENTLY IN PLAY</span>
+      <b>$0.00</b>
+      <small>No active parlays</small>
+    </div>
   </section>
  </>
 }
