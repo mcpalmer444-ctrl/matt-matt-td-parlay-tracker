@@ -247,10 +247,11 @@ function Stats({parlays, bankroll}){
 <div className="stat">
   <span>CURRENTLY IN PLAY</span>
   <b>
-    ${state.parlays
-      .filter(p => p.status === "live")
-      .reduce((sum, p) => sum + Number(p.wager || 0), 0)
-      .toFixed(2)}
+    {money(
+      parlays
+        .filter(p => p.status === "live")
+        .reduce((sum, p) => sum + Number(p.wager || 0), 0)
+    )}
   </b>
   <small>Active parlay wagers</small>
 </div>
