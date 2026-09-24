@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {createRoot} from "react-dom/client";
+import { createWorker } from "tesseract.js";
 import "./styles.css";
 
 const API = import.meta.env.VITE_API_URL || "";
