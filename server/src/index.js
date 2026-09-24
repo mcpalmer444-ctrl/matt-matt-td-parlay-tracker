@@ -101,6 +101,14 @@ function updateParlayResult(parlay) {
     };
   }
 
+  // No failed legs and not all scored means the parlay is still alive.
+  return {
+    ...parlay,
+    status: "live",
+    result: undefined,
+  };
+}
+
   return parlay;
 }
 
