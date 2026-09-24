@@ -166,38 +166,84 @@ async function getNFLPlayerStatuses(players) {
   const statuses = [];
 
   for (const player of wanted) {
-    let foundGame = null;
-    let touchdowns = 0;
+    const matchingGames = [];
 
     for (const game of scoreboard) {
-      const gameText = `${game.name} ${game.shortName}`.toLowerCase();
-      const teamText = game.teams
-        .map((team) => `${team.abbreviation} ${team.displayName}`)
-        .join(" ")
-        .toLowerCase();
+      const gameText =
+        `${game.name || ""} ${game.shortName || ""}`.toLowerCase();
 
       const playerGame =
         player.game &&
         gameText.includes(String(player.game).toLowerCase());
 
       const playerTeam =
-  player.team &&
-  game.teams.some((team) => {
-    const espnTeam = String(team.abbreviation || "").toLowerCase();
-    const playerTeamCode = String(player.team).toLowerCase();
+        player.team &&
+        game.teams.some((team) => {
+          const espnTeam =
+            String(team.abbreviation || "").toLowerCase();
 
-    const aliases = {
-      was: "wsh",
-      wsh: "wsh",
-    };
+          const playerTeamCode =
+            String(player.team).toLowerCase();
 
-    return espnTeam === (aliases[playerTeamCode] || playerTeamCode);
-  });
+          const aliases = {
+            was: "wsh",
+            wsh: "wsh",
+          };
 
-if (playerTeam || playerGame) {
-  foundGame = game;
-  break;
-}
+          return (
+            espnTeam ===
+            (aliases[playerTeamCode] || playerTeamCode)
+          );
+        });
+
+      if (playerTeam || playerGame) {
+        matchingGames.push(game);
+      }
+    }
+
+    if (!matchingGames.length) {
+      statuses.push({
+        ...player,
+        status: "not_started",
+        touchdowns: 0,
+      });
+
+      continue;
+    }
+
+    // Pick the correct game:
+    // 1. Live
+    // 2. Upcoming
+    // 3. Most recent completed game
+
+    const liveGame = matchingGames.find(
+      (game) => game.status === "live"
+    );
+
+    const upcomingGames = matchingGames
+      .filter((game) => game.status === "not_started")
+      .sort(
+        (a, b) =>
+          new Date(a.date || 0) -
+          new Date(b.date || 0)
+      );
+
+    const completedGames = matchingGames
+      .filter((game) => game.status === "final")
+      .sort(
+        (a, b) =>
+          new Date(b.date || 0) -
+          new Date(a.date || 0)
+      );
+
+    let foundGame = null;
+
+    if (liveGame) {
+      foundGame = liveGame;
+    } else if (upcomingGames.length) {
+      foundGame = upcomingGames[0];
+    } else if (completedGames.length) {
+      foundGame = completedGames[0];
     }
 
     if (!foundGame) {
@@ -210,44 +256,34 @@ if (playerTeam || playerGame) {
       continue;
     }
 
-    const gameState = String(
-  foundGame.status ||
-  foundGame.rawStatus ||
-  ""
-).toLowerCase();
-
-const gameCompleted =
-  gameState === "final" ||
-  gameState === "post" ||
-  gameState === "completed";
-
-if (gameCompleted) {
-  const summary = await getGameSummary(foundGame.id);
-  const touchdownMap = extractPlayerTouchdowns(summary);
-
-  touchdowns =
-    touchdownMap.get(player.normalizedName)?.touchdowns || 0;
-
-  statuses.push({
-    ...player,
-    status: touchdowns > 0 ? "td_scored" : "failed",
-    touchdowns,
-    gameId: foundGame.id,
-  });
-
-  continue;
-}
-
-if (foundGame.status === "not_started") {
-      const summary = await getGameSummary(foundGame.id);
-      const touchdownMap = extractPlayerTouchdowns(summary);
-
-      touchdowns =
-        touchdownMap.get(player.normalizedName)?.touchdowns || 0;
-
+    // Upcoming game
+    if (foundGame.status === "not_started") {
       statuses.push({
         ...player,
-        status: touchdowns > 0 ? "td_scored" : "failed",
+        status: "not_started",
+        touchdowns: 0,
+        gameId: foundGame.id,
+      });
+
+      continue;
+    }
+
+    // Live or final game
+    const summary = await getGameSummary(foundGame.id);
+    const touchdownMap =
+      extractPlayerTouchdowns(summary);
+
+    const touchdowns =
+      touchdownMap.get(player.normalizedName)?.touchdowns || 0;
+
+    // Final game
+    if (foundGame.status === "final") {
+      statuses.push({
+        ...player,
+        status:
+          touchdowns > 0
+            ? "td_scored"
+            : "failed",
         touchdowns,
         gameId: foundGame.id,
       });
@@ -255,15 +291,13 @@ if (foundGame.status === "not_started") {
       continue;
     }
 
-    const summary = await getGameSummary(foundGame.id);
-    const touchdownMap = extractPlayerTouchdowns(summary);
-
-    touchdowns =
-      touchdownMap.get(player.normalizedName)?.touchdowns || 0;
-
+    // Live game
     statuses.push({
       ...player,
-      status: touchdowns > 0 ? "td_scored" : "live",
+      status:
+        touchdowns > 0
+          ? "td_scored"
+          : "live",
       touchdowns,
       gameId: foundGame.id,
     });
@@ -271,7 +305,6 @@ if (foundGame.status === "not_started") {
 
   return statuses;
 }
-
 export {
   getNFLScoreboard,
   getGameSummary,
