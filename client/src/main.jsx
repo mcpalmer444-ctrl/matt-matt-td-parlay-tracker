@@ -240,9 +240,7 @@ function Stats({parlays, bankroll}){
 
    <div className="stat">
   <span>CURRENT BANKROLL</span>
-  <b>
-    ${(Number(state.bankroll?.mattP || 0) + Number(state.bankroll?.mattB || 0)).toFixed(2)}
-  </b>
+  <b>{money(Number(bankroll?.mattP || 0) + Number(bankroll?.mattB || 0))}</b>
   <small>Available to wager</small>
 </div>
 
