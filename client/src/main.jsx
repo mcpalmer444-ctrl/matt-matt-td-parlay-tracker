@@ -256,7 +256,52 @@ function Stats({parlays}){
 function AddParlay({close,refresh}){
  const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[parlayDate,setParlayDate]=useState(""),[confirm,setConfirm]=useState(false),[ocrLoading,setOcrLoading]=useState(false);
  async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);if(d.wager!=null)setWager(String(d.wager));if(d.potential_payout!=null)setPotential(String(d.potential_payout));setConfirm(true)}
- async function save(){
+ async function handleScreenshot(e){
+  const file = e.target.files?.[0];
+
+  if(!file) return;
+
+  setOcrLoading(true);
+
+  try{
+    const worker = await createWorker("eng");
+
+    const { data } = await worker.recognize(file);
+
+    await worker.terminate();
+
+    const ocrText = data.text || "";
+
+    setText(ocrText);
+
+    const r = await fetch(`${API}/api/import/parse`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:ocrText})
+    });
+
+    const parsed = await r.json();
+
+    setLegs(parsed.legs || []);
+
+    if(parsed.wager != null){
+      setWager(String(parsed.wager));
+    }
+
+    if(parsed.potential_payout != null){
+      setPotential(String(parsed.potential_payout));
+    }
+
+    setConfirm(true);
+  }catch(error){
+    console.error("Screenshot OCR error:",error);
+    alert("Couldn't read that screenshot. Try a clearer DraftKings bet slip screenshot.");
+  }finally{
+    setOcrLoading(false);
+    e.target.value = "";
+  }
+}
+  async function save(){
   const r=await fetch(`${API}/api/parlays`,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
