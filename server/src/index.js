@@ -518,19 +518,38 @@ for (const line of lines) {
   }
 }
 
-  // DraftKings copied format:
+  // DraftKings screenshot/OCR format:
+  // Each actual leg is followed by "Anytime TD Scorer".
+  // Ignore the truncated player summary at the top of the bet slip.
+
+  for (let i = 0; i < lines.length; i++) {
+    const current = lines[i].trim();
+    const next = (lines[i + 1] || "").trim();
+
+    if (
+      current &&
+      /anytime td scorer/i.test(next) &&
+      !/^(wager|to pay|potential payout|stake|open|closed|parlay|6 pick|5 pick|4 pick)/i.test(current)
+    ) {
+      players.push(current);
+    }
+  }
+
+  // Keep support for the original pasted DraftKings format:
   // Player One, Player Two, Player Three
-  const playerLine = lines.find(line => {
-    if (!line.includes(",")) return false;
+  if (!players.length) {
+    const playerLine = lines.find(line => {
+      if (!line.includes(",")) return false;
 
-    return !/^(wager|to pay|potential payout|stake|open|closed)/i.test(line);
-  });
+      return !/^(wager|to pay|potential payout|stake|open|closed)/i.test(line);
+    });
 
-  if (playerLine) {
-    players = playerLine
-      .split(",")
-      .map(name => name.trim())
-      .filter(Boolean);
+    if (playerLine) {
+      players = playerLine
+        .split(",")
+        .map(name => name.trim())
+        .filter(Boolean);
+    }
   }
 
   // Keep support for the original pipe-separated format.
