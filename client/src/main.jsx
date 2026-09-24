@@ -238,17 +238,24 @@ function Stats({parlays}){
       <small>Current Season 2 profit</small>
     </div>
 
-    <div className="stat">
-      <span>CURRENT BANKROLL</span>
-      <b>$59.50</b>
-      <small>Available to wager</small>
-    </div>
+   <div className="stat">
+  <span>CURRENT BANKROLL</span>
+  <b>
+    ${(Number(state.bankroll?.mattP || 0) + Number(state.bankroll?.mattB || 0)).toFixed(2)}
+  </b>
+  <small>Available to wager</small>
+</div>
 
-    <div className="stat">
-      <span>CURRENTLY IN PLAY</span>
-      <b>$0.00</b>
-      <small>No active parlays</small>
-    </div>
+<div className="stat">
+  <span>CURRENTLY IN PLAY</span>
+  <b>
+    ${state.parlays
+      .filter(p => p.status === "live")
+      .reduce((sum, p) => sum + Number(p.wager || 0), 0)
+      .toFixed(2)}
+  </b>
+  <small>Active parlay wagers</small>
+</div>
   </section>
  </>
 }
