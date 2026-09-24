@@ -254,7 +254,7 @@ function Stats({parlays}){
 }
 
 function AddParlay({close,refresh}){
- const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[parlayDate,setParlayDate]=useState(""),[confirm,setConfirm]=useState(false);
+ const [mode,setMode]=useState("import"),[text,setText]=useState(""),[legs,setLegs]=useState([]),[wager,setWager]=useState("20"),[potential,setPotential]=useState(""),[promo,setPromo]=useState(false),[historical,setHistorical]=useState(false),[parlayDate,setParlayDate]=useState(""),[confirm,setConfirm]=useState(false),[ocrLoading,setOcrLoading]=useState(false);
  async function parse(){const r=await fetch(`${API}/api/import/parse`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text})});const d=await r.json();setLegs(d.legs);if(d.wager!=null)setWager(String(d.wager));if(d.potential_payout!=null)setPotential(String(d.potential_payout));setConfirm(true)}
  async function save(){
   const r=await fetch(`${API}/api/parlays`,{
