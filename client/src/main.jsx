@@ -329,7 +329,23 @@ function AddParlay({close,refresh}){
   value={text}
   onChange={e=>setText(e.target.value)}
   placeholder={"6 Picks Parlay\n\nPlayer One, Player Two, Player Three\n\nWager: $3.50\nTo Pay: $421.82"}
-/><div className="importChoices">📋 Paste text &nbsp; • &nbsp; 📸 Screenshot (next build) &nbsp; • &nbsp; 🔗 Share link (next build)</div><button className="goldBtn wide" onClick={parse}>PARSE & CONTINUE</button></>:<Manual setLegs={setLegs} setConfirm={setConfirm}/>}
+/><div className="importChoices">
+  📋 Paste text &nbsp; • &nbsp;
+  <label style={{cursor:"pointer"}}>
+    📸 Upload Screenshot
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleScreenshot}
+      style={{display:"none"}}
+    />
+  </label>
+  &nbsp; • &nbsp; 🔗 Share link (next build)
+</div>
+
+{ocrLoading && (
+  <div className="hint">🔎 Reading DraftKings screenshot...</div>
+)}<button className="goldBtn wide" onClick={parse}>PARSE & CONTINUE</button></>:<Manual setLegs={setLegs} setConfirm={setConfirm}/>}
    </>:<><h3>Confirm Parlay</h3><div className="confirmList">
   {legs.map((l,i)=>
     <div className="confirmRow" key={l.id||i}>
