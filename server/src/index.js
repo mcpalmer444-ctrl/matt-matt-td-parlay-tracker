@@ -183,19 +183,28 @@ if (pool) {
       if (!live) return leg;
 
       return {
-        ...leg,
-        status:
-          leg.status === "td_scored"
-            ? "td_scored"
-            : live.status,
-        touchdowns:
-          leg.status === "td_scored"
-            ? Math.max(
-                Number(leg.touchdowns || 1),
-                Number(live.touchdowns || 0)
-              )
-            : Number(live.touchdowns || 0)
-      };
+  ...leg,
+
+  status:
+    leg.status === "td_scored" &&
+    leg.gameId &&
+    String(leg.gameId) === String(live.gameId)
+      ? "td_scored"
+      : live.status,
+
+  touchdowns:
+    leg.status === "td_scored" &&
+    leg.gameId &&
+    String(leg.gameId) === String(live.gameId)
+      ? Math.max(
+          Number(leg.touchdowns || 1),
+          Number(live.touchdowns || 0)
+        )
+      : Number(live.touchdowns || 0),
+
+  gameId:
+    live.gameId || leg.gameId
+};
     });
 
     const updatedParlay = updateParlayResult({
