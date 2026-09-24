@@ -187,36 +187,35 @@ if (pool) {
 
     const parlay = current.rows[0];
 
-    const updatedLegs = (parlay.legs || []).map((leg) => {
-      const live = statusMap.get(String(leg.id));
+const updatedLegs = (parlay.legs || []).map((leg) => {
+  const live = statusMap.get(String(leg.id));
 
-      if (!live) return leg;
+  if (!live) return leg;
 
-      return {
-  ...leg,
+  return {
+    ...leg,
 
-  status:
-    leg.status === "td_scored" &&
-    leg.gameId &&
-    String(leg.gameId) === String(live.gameId)
-      ? "td_scored"
-      : live.status,
+    status:
+      leg.status === "td_scored" &&
+      leg.gameId &&
+      String(leg.gameId) === String(live.gameId)
+        ? "td_scored"
+        : live.status,
 
-  touchdowns:
-    leg.status === "td_scored" &&
-    leg.gameId &&
-    String(leg.gameId) === String(live.gameId)
-      ? Math.max(
-          Number(leg.touchdowns || 1),
-          Number(live.touchdowns || 0)
-        )
-      : Number(live.touchdowns || 0),
+    touchdowns:
+      leg.status === "td_scored" &&
+      leg.gameId &&
+      String(leg.gameId) === String(live.gameId)
+        ? Math.max(
+            Number(leg.touchdowns || 1),
+            Number(live.touchdowns || 0)
+          )
+        : Number(live.touchdowns || 0),
 
-  gameId:
-    live.gameId || leg.gameId
-};
-    });
-
+    gameId:
+      live.gameId || leg.gameId
+  };
+});
     const updatedParlay = updateParlayResult({
       ...parlay,
       legs: updatedLegs
