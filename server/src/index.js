@@ -74,6 +74,11 @@ app.get("/api/state", async (_req,res) => res.json(await getState()));
 function updateParlayResult(parlay) {
   const legs = parlay.legs || [];
 
+  // Once a parlay is settled, never reopen it.
+  if (parlay.status === "lost" || parlay.status === "won") {
+    return parlay;
+  }
+
   if (!legs.length) {
     return parlay;
   }
@@ -105,7 +110,6 @@ function updateParlayResult(parlay) {
   return {
     ...parlay,
     status: "live",
-    result: undefined,
   };
 }
 
