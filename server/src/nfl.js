@@ -59,9 +59,9 @@ function gameTeams(event) {
 async function getNFLScoreboard() {
   const dates = [];
 
-  for (let i = 0; i <= 7; i++) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
+  for (let i = -7; i <= 7; i++) {
+  const date = new Date();
+  date.setDate(date.getDate() + i);
 
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, "0");
