@@ -17,7 +17,7 @@ function App(){
 
   const next=await r.json();
 
-  const liveParlays=next.parlays.filter(p=>p.status==="live" || p.status==="lost");
+  const liveParlays=next.parlays.filter(p=>p.status==="live");
 
   if(liveParlays.length){
     const players=liveParlays.flatMap(p=>
