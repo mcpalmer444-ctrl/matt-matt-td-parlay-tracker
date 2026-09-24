@@ -195,7 +195,7 @@ function ParlayCard({p,onRefresh}){
 }
 function label(s){return {not_started:"🕐 NOT STARTED",live:"⏳ LIVE",td_scored:"✅ TD SCORED",failed:"❌ FAILED"}[s]||s}
 
-function Stats({parlays}){
+function Stats({parlays, bankroll}){
  const done=parlays.filter(p=>p.status!=="live"), wins=done.filter(p=>p.status==="won").length, wager=done.reduce((a,p)=>a+Number(p.wager||0),0), payouts=done.reduce((a,p)=>a+Number(p.actual_payout||0),0), profit=payouts-wager;
 
  return <>
