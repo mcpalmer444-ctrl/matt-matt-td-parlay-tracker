@@ -88,7 +88,7 @@ function App(){
       </section>
       <div className="sectionTitle"><h2>🔥 LIVE PARLAYS</h2><span>{live.length} active</span></div>
       {live.length===0 ? <Empty text="No live parlays yet. Add your first DraftKings TD parlay."/> : live.map(p=><ParlayCard key={p.id} p={p} onRefresh={refresh}/>)}
-      <Stats parlays={state.parlays}/>
+      <Stats parlays={state.parlays} bankroll={state.bankroll}/>
     </main>}
 
     {tab==="history" && <main><div className="sectionTitle"><h2>📜 HISTORY</h2></div>{history.length?history.map(p=><ParlayCard key={p.id} p={p}/>):<Empty text="Completed parlays will appear here."/>}</main>}
