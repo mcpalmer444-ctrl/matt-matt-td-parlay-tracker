@@ -70,6 +70,7 @@ async function getState() {
 }
 
 app.get("/api/state", async (_req,res) => res.json(await getState()));
+
 function updateParlayResult(parlay) {
   const legs = parlay.legs || [];
 
@@ -101,11 +102,12 @@ function updateParlayResult(parlay) {
     };
   }
 
-  // No failed legs and not all scored means the parlay is still alive.
   return {
     ...parlay,
     status: "live",
     result: undefined,
+  };
+}
   };
 }
 
