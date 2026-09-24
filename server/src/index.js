@@ -108,11 +108,7 @@ function updateParlayResult(parlay) {
     result: undefined,
   };
 }
-  };
-}
 
-  return parlay;
-}
 
 async function settleParlay(parlay) {
   if (!pool) return;
