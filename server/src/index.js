@@ -537,8 +537,8 @@ for (const line of lines) {
 }
 
   // DraftKings screenshot/OCR format:
-  // Each actual leg is followed by "Anytime TD Scorer".
-  // Ignore the truncated player summary at the top of the bet slip.
+  // The player name appears immediately before "Anytime TD Scorer".
+  // OCR can add junk before/after the name, so clean it first.
 
   for (let i = 0; i < lines.length; i++) {
     const current = lines[i].trim();
@@ -549,7 +549,22 @@ for (const line of lines) {
       /anytime td scorer/i.test(next) &&
       !/^(wager|to pay|potential payout|stake|open|closed|parlay|6 pick|5 pick|4 pick)/i.test(current)
     ) {
-      players.push(current);
+      let player = current;
+
+      // Remove common OCR garbage from the beginning.
+      player = player
+        .replace(/^[^A-Za-zÀ-ÿ'-]+/, "")
+        .replace(/^(?:o|0|©|e|ee|al|HL|gle|billed)\s+/i, "")
+        .trim();
+
+      // Remove common OCR garbage from the end.
+      player = player
+        .replace(/\s+(?:ee|al|HL|gle|billed)$/i, "")
+        .trim();
+
+      if (player && player.length >= 3) {
+        players.push(player);
+      }
     }
   }
 
