@@ -306,6 +306,18 @@ if (gamesAfterParlay.length) {
 } else if (upcomingGames.length) {
   foundGame = upcomingGames[0];
 }
+    console.log(
+  "SELECTED GAME:",
+  player.name,
+  foundGame
+    ? {
+        id: foundGame.id,
+        name: foundGame.name,
+        date: foundGame.date,
+        status: foundGame.status
+      }
+    : null
+);
 
     if (!foundGame) {
       statuses.push({
