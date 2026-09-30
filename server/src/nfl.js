@@ -80,6 +80,16 @@ async function getNFLScoreboard() {
     (data) => data.events || []
   );
 
+  console.log(
+  "ALL ESPN GAMES:",
+  events.map(e => ({
+    id: e.id,
+    name: e.name,
+    date: e.date,
+    status: e.competitions?.[0]?.status?.type?.state
+  }))
+);
+
   const uniqueEvents = [
     ...new Map(
       events.map((event) => [String(event.id), event])
