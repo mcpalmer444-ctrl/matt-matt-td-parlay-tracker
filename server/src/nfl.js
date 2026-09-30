@@ -344,10 +344,19 @@ if (gamesAfterParlay.length) {
     // Live or final game
     const summary = await getGameSummary(foundGame.id);
 
-    console.log(
-  "RAW SCORING PLAYS:",
+   console.log(
+  "TD PLAYS:",
   player.name,
-  summary?.scoringPlays
+  (summary?.scoringPlays || [])
+    .filter(play =>
+      String(play?.type?.text || "")
+        .toLowerCase()
+        .includes("touchdown")
+    )
+    .map(play => ({
+      type: play?.type?.text,
+      text: play?.text
+    }))
 );
     
     const touchdownMap =
