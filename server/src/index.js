@@ -561,6 +561,7 @@ player = player
 player = player
   .replace(/^(?:\d+[\s\-.)]*)+/i, "")
   .replace(/^(?:iq|q|lq|o|hl|©)\s*[\)\]":\-]*\s*/i, "")
+  .replace(/^q\s+/i, "")
 .replace(/^(?:iq|q)\)\s*/i, "")
   .trim();
 
