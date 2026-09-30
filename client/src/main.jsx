@@ -27,6 +27,7 @@ function App(){
     name:l.player,
     game:l.game,
     team:l.team,
+    gameId:l.gameId,
   }))
 );
 
