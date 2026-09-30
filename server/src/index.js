@@ -545,50 +545,60 @@ app.post("/api/import/parse", (req,res) => {
   // --------------------------------------------------
 
   function cleanPlayerName(name) {
-    let player = String(name || "").trim();
+  let player = String(name || "").trim();
 
-    // Remove junk before the name.
-    player = player
-      .replace(/^[^A-Za-zÀ-ÿ]+/, "")
-      .trim();
+  // Remove common OCR junk from the beginning.
+  // Examples:
+  // "o “3- MarShawn Lloyd"
+  // "o 4) De'Von Achane"
+  // "O -10- Quinshon Judkins"
+  // "o Iq) Garrett Wilson"
+  // "o \"q Jalen Hurts"
+  player = player
+    .replace(/^(?:o|q|iq|lq|hl|©)\b[\s"'“”‘’()\[\].,:;+\-–—]*\s*/i, "")
+    .trim();
 
-    // Remove OCR numbering / punctuation.
-    player = player
-  .replace(/^\s*(?:\d+[\s\-.)]*|iq\)|lq\)|q\)|o\)|hl\)|©)\s*/i, "")
-  .trim();
+  // OCR junk can appear more than once.
+  player = player
+    .replace(/^(?:o|q|iq|lq|hl|©)\b[\s"'“”‘’()\[\].,:;+\-–—]*\s*/i, "")
+    .trim();
 
-    // Remove common OCR junk at the end.
-    player = player
-      .replace(/\s+(?:ee|al|hl|gle|billed|7s)$/i, "")
-      .trim();
+  // Remove leading numbers / odds fragments / punctuation.
+  player = player
+    .replace(/^[\d\s"'“”‘’()\[\].,:;+\-–—]+/, "")
+    .trim();
 
-    // Fix names OCR commonly runs together.
-    player = player
-      .replace(/\bJoshAllen\b/i, "Josh Allen")
-      .replace(/\bJalenHurts\b/i, "Jalen Hurts")
-      .replace(/\bMarShawnLloyd\b/i, "MarShawn Lloyd")
-      .replace(/\bDeVonAchane\b/i, "De'Von Achane")
-      .replace(/\bQuinshonJudkins\b/i, "Quinshon Judkins")
-      .replace(/\bGarrettWilson\b/i, "Garrett Wilson");
+  // Remove common OCR junk at the end.
+  player = player
+    .replace(/\s+(?:ee|al|hl|gle|billed|7s)$/i, "")
+    .trim();
 
-    // Fix a few OCR variations.
-    player = player
-      .replace(/^Marshawn\s+Lloyd$/i, "MarShawn Lloyd")
-      .replace(/^Devon\s+Achane$/i, "De'Von Achane")
-      .replace(/^Jalen\s+Hurts$/i, "Jalen Hurts")
-      .replace(/^Josh\s+Allen$/i, "Josh Allen")
-      .replace(/^Garrett\s+Wilson$/i, "Garrett Wilson")
-      .replace(/^Quinshon\s+Judkins$/i, "Quinshon Judkins");
+  // Fix names OCR commonly runs together.
+  player = player
+    .replace(/\bJoshAllen\b/i, "Josh Allen")
+    .replace(/\bJalenHurts\b/i, "Jalen Hurts")
+    .replace(/\bMarShawnLloyd\b/i, "MarShawn Lloyd")
+    .replace(/\bDeVonAchane\b/i, "De'Von Achane")
+    .replace(/\bQuinshonJudkins\b/i, "Quinshon Judkins")
+    .replace(/\bGarrettWilson\b/i, "Garrett Wilson");
 
-    // Remove stray punctuation.
-    player = player
-      .replace(/^[^A-Za-zÀ-ÿ]+/, "")
-      .replace(/[^A-Za-zÀ-ÿ'.\-]+$/g, "")
-      .trim();
+  // Fix common OCR variations.
+  player = player
+    .replace(/^Marshawn\s+Lloyd$/i, "MarShawn Lloyd")
+    .replace(/^Devon\s+Achane$/i, "De'Von Achane")
+    .replace(/^Jalen\s+Hurts$/i, "Jalen Hurts")
+    .replace(/^Josh\s+Allen$/i, "Josh Allen")
+    .replace(/^Garrett\s+Wilson$/i, "Garrett Wilson")
+    .replace(/^Quinshon\s+Judkins$/i, "Quinshon Judkins");
 
-    return player;
-  }
+  // Remove stray punctuation from the ends.
+  player = player
+    .replace(/^[^A-Za-zÀ-ÿ]+/, "")
+    .replace(/[^A-Za-zÀ-ÿ'.\-]+$/g, "")
+    .trim();
 
+  return player;
+}
   // --------------------------------------------------
   // KNOWN NFL PLAYER -> TEAM LOOKUP
   // --------------------------------------------------
