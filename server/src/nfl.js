@@ -266,21 +266,29 @@ console.log(
 
     let foundGame = null;
 
-    if (player.parlayStatus === "lost" || player.parlayStatus === "won") {
-  // Settled parlays should finish tracking the game that already happened.
-  if (completedGames.length) {
-    foundGame = completedGames[0];
-  } else if (liveGame) {
-    foundGame = liveGame;
-  } else if (upcomingGames.length) {
-    foundGame = upcomingGames[0];
-  }
+    const parlayTime = player.parlayCreatedAt
+  ? new Date(player.parlayCreatedAt).getTime()
+  : 0;
+
+const gamesAfterParlay = matchingGames
+  .filter((game) => {
+    if (!game.date || !parlayTime) return true;
+    return new Date(game.date).getTime() > parlayTime;
+  })
+  .sort(
+    (a, b) =>
+      new Date(a.date || 0).getTime() -
+      new Date(b.date || 0).getTime()
+  );
+
+if (gamesAfterParlay.length) {
+  foundGame = gamesAfterParlay[0];
+} else if (completedGames.length) {
+  foundGame = completedGames[0];
 } else if (liveGame) {
   foundGame = liveGame;
 } else if (upcomingGames.length) {
   foundGame = upcomingGames[0];
-} else if (completedGames.length) {
-  foundGame = completedGames[0];
 }
 
     if (!foundGame) {
