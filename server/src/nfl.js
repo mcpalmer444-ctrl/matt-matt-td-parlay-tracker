@@ -343,6 +343,13 @@ if (gamesAfterParlay.length) {
 
     // Live or final game
     const summary = await getGameSummary(foundGame.id);
+
+    console.log(
+  "RAW SCORING PLAYS:",
+  player.name,
+  summary?.scoringPlays
+);
+    
     const touchdownMap =
       extractPlayerTouchdowns(summary);
 
