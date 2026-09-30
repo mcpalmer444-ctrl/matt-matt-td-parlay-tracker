@@ -182,47 +182,36 @@ const matchingGames = [];
 
 // If this leg already has a saved gameId,
 // ONLY use that exact game.
-if (player.gameId) {
-  const savedGame = scoreboard.find(
-    (game) => String(game.id) === String(player.gameId)
-  );
+for (const game of scoreboard) {
+  const gameText =
+    `${game.name || ""} ${game.shortName || ""}`.toLowerCase();
 
-  if (savedGame) {
-    matchingGames.push(savedGame);
-  }
-} else {
-  // No saved game yet — find the player's live/upcoming game.
-  for (const game of scoreboard) {
-    const gameText =
-      `${game.name || ""} ${game.shortName || ""}`.toLowerCase();
+  const playerGame =
+    player.game &&
+    gameText.includes(String(player.game).toLowerCase());
 
-    const playerGame =
-      player.game &&
-      gameText.includes(String(player.game).toLowerCase());
+  const playerTeam =
+    player.team &&
+    game.teams.some((team) => {
+      const espnTeam =
+        String(team.abbreviation || "").toLowerCase();
 
-    const playerTeam =
-      player.team &&
-      game.teams.some((team) => {
-        const espnTeam =
-          String(team.abbreviation || "").toLowerCase();
+      const playerTeamCode =
+        String(player.team).toLowerCase();
 
-        const playerTeamCode =
-          String(player.team).toLowerCase();
+      const aliases = {
+        was: "wsh",
+        wsh: "wsh",
+      };
 
-        const aliases = {
-          was: "wsh",
-          wsh: "wsh",
-        };
+      return (
+        espnTeam ===
+        (aliases[playerTeamCode] || playerTeamCode)
+      );
+    });
 
-        return (
-          espnTeam ===
-          (aliases[playerTeamCode] || playerTeamCode)
-        );
-      });
-
-    if (playerTeam || playerGame) {
-      matchingGames.push(game);
-    }
+  if (playerTeam || playerGame) {
+    matchingGames.push(game);
   }
 }
 console.log(
