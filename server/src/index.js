@@ -514,31 +514,121 @@ app.post("/api/import/parse", (req,res) => {
   let potentialPayout = null;
   let players = [];
 
-for (const line of lines) {
-  const wagerMatch = line.match(
-    /Wager:\s*\$?([\d,]+(?:\.\d{1,2})?)/i
-  );
+  // --------------------------------------------------
+  // WAGER / PAYOUT
+  // --------------------------------------------------
 
-  if (wagerMatch) {
-    wager = Number(
-      wagerMatch[1].replace(/,/g, "")
+  for (const line of lines) {
+    const wagerMatch = line.match(
+      /Wager:\s*\$?([\d,]+(?:\.\d{1,2})?)/i
     );
+
+    if (wagerMatch) {
+      wager = Number(
+        wagerMatch[1].replace(/,/g, "")
+      );
+    }
+
+    const payoutMatch = line.match(
+      /(?:To Pay|Potential Payout):\s*\$?([\d,]+(?:\.\d{1,2})?)/i
+    );
+
+    if (payoutMatch) {
+      potentialPayout = Number(
+        payoutMatch[1].replace(/,/g, "")
+      );
+    }
   }
 
-  const payoutMatch = line.match(
-    /(?:To Pay|Potential Payout):\s*\$?([\d,]+(?:\.\d{1,2})?)/i
-  );
+  // --------------------------------------------------
+  // CLEAN OCR PLAYER NAMES
+  // --------------------------------------------------
 
-  if (payoutMatch) {
-    potentialPayout = Number(
-      payoutMatch[1].replace(/,/g, "")
-    );
+  function cleanPlayerName(name) {
+    let player = String(name || "").trim();
+
+    // Remove junk before the name.
+    player = player
+      .replace(/^[^A-Za-zÀ-ÿ]+/, "")
+      .trim();
+
+    // Remove OCR numbering / punctuation.
+    player = player
+      .replace(/^(?:\d+[\s\-.)]*)+/i, "")
+      .replace(/^(?:iq|lq|q|o|hl|©)\s*[\)\]":\-]*\s*/i, "")
+      .trim();
+
+    // Remove common OCR junk at the end.
+    player = player
+      .replace(/\s+(?:ee|al|hl|gle|billed|7s)$/i, "")
+      .trim();
+
+    // Fix names OCR commonly runs together.
+    player = player
+      .replace(/\bJoshAllen\b/i, "Josh Allen")
+      .replace(/\bJalenHurts\b/i, "Jalen Hurts")
+      .replace(/\bMarShawnLloyd\b/i, "MarShawn Lloyd")
+      .replace(/\bDeVonAchane\b/i, "De'Von Achane")
+      .replace(/\bQuinshonJudkins\b/i, "Quinshon Judkins")
+      .replace(/\bGarrettWilson\b/i, "Garrett Wilson");
+
+    // Fix a few OCR variations.
+    player = player
+      .replace(/^Marshawn\s+Lloyd$/i, "MarShawn Lloyd")
+      .replace(/^Devon\s+Achane$/i, "De'Von Achane")
+      .replace(/^Jalen\s+Hurts$/i, "Jalen Hurts")
+      .replace(/^Josh\s+Allen$/i, "Josh Allen")
+      .replace(/^Garrett\s+Wilson$/i, "Garrett Wilson")
+      .replace(/^Quinshon\s+Judkins$/i, "Quinshon Judkins");
+
+    // Remove stray punctuation.
+    player = player
+      .replace(/^[^A-Za-zÀ-ÿ]+/, "")
+      .replace(/[^A-Za-zÀ-ÿ'.\-]+$/g, "")
+      .trim();
+
+    return player;
   }
-}
 
-  // DraftKings screenshot/OCR format:
-  // The player name appears immediately before "Anytime TD Scorer".
-  // OCR can add junk before/after the name, so clean it first.
+  // --------------------------------------------------
+  // KNOWN NFL PLAYER -> TEAM LOOKUP
+  // --------------------------------------------------
+  // This gives the importer an immediate team even when
+  // DraftKings OCR does not capture the team line.
+
+  const playerTeams = {
+    "marshawn lloyd": "GB",
+    "josh allen": "BUF",
+    "de'von achane": "MIA",
+    "quinshon judkins": "CLE",
+    "garrett wilson": "NYJ",
+    "jalen hurts": "PHI",
+
+    // Previous / common TD parlay players
+    "dontayvion wicks": "GB",
+    "derrick henry": "BAL",
+    "bucky irving": "TB",
+    "chase brown": "CIN",
+    "bhayshul tuten": "JAX",
+    "bijan robinson": "ATL",
+    "jacory croskey-merritt": "WAS",
+    "cameron skattebo": "NYG",
+    "mark andrews": "BAL"
+  };
+
+  function getTeamForPlayer(player) {
+    const key = player
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return playerTeams[key] || "";
+  }
+
+  // --------------------------------------------------
+  // DRAFTKINGS OCR FORMAT
+  // Player name immediately before "Anytime TD Scorer"
+  // --------------------------------------------------
 
   for (let i = 0; i < lines.length; i++) {
     const current = lines[i].trim();
@@ -549,37 +639,7 @@ for (const line of lines) {
       /anytime td scorer/i.test(next) &&
       !/^(wager|to pay|potential payout|stake|open|closed|parlay|6 pick|5 pick|4 pick)/i.test(current)
     ) {
-      let player = current;
-
-// Remove OCR junk from the beginning of the line.
-player = player
-  .replace(/^[^A-Za-zÀ-ÿ]+/, "")
-  .trim();
-
-// Remove OCR junk that looks like numbering or punctuation
-// before the actual player name.
-player = player
-  .replace(/^(?:\d+[\s\-.)]*)+/i, "")
-  .replace(/^(?:iq|q|lq|o|hl|©)\s*[\)\]":\-]*\s*/i, "")
-  .replace(/^q\s+/i, "")
-.replace(/^(?:iq|q)\)\s*/i, "")
-  .trim();
-
-// Remove obvious OCR junk from the end.
-player = player
-  .replace(/\s+(?:ee|al|hl|gle|billed|7s)$/i, "")
-  .trim();
-
-// OCR sometimes removes the space between first and last name.
-player = player
-  .replace(/\bJoshAllen\b/i, "Josh Allen")
-  .replace(/\bJalenHurts\b/i, "Jalen Hurts");
-
-// Remove stray punctuation left at either end.
-player = player
-  .replace(/^[^A-Za-zÀ-ÿ]+/, "")
-  .replace(/[^A-Za-zÀ-ÿ'.\-]+$/g, "")
-  .trim();
+      const player = cleanPlayerName(current);
 
       if (player && player.length >= 3) {
         players.push(player);
@@ -587,8 +647,10 @@ player = player
     }
   }
 
-  // Keep support for the original pasted DraftKings format:
-  // Player One, Player Two, Player Three
+  // --------------------------------------------------
+  // FALLBACK: COMMA-SEPARATED PLAYER LIST
+  // --------------------------------------------------
+
   if (!players.length) {
     const playerLine = lines.find(line => {
       if (!line.includes(",")) return false;
@@ -599,12 +661,15 @@ player = player
     if (playerLine) {
       players = playerLine
         .split(",")
-        .map(name => name.trim())
+        .map(name => cleanPlayerName(name))
         .filter(Boolean);
     }
   }
 
-  // Keep support for the original pipe-separated format.
+  // --------------------------------------------------
+  // FALLBACK: PIPE-SEPARATED FORMAT
+  // --------------------------------------------------
+
   if (!players.length) {
     for (const line of lines) {
       const parts = line
@@ -613,7 +678,7 @@ player = player
         .filter(Boolean);
 
       if (parts.length >= 2) {
-        const player = parts[0];
+        const player = cleanPlayerName(parts[0]);
 
         if (
           /^(parlay|same game parlay|sgp|anytime td|touchdown|total|spread|moneyline|stake|payout|odds)$/i.test(
@@ -623,22 +688,28 @@ player = player
           continue;
         }
 
-        players.push(player);
+        if (player) {
+          players.push(player);
+        }
       }
     }
   }
 
+  // --------------------------------------------------
+  // BUILD LEGS
+  // --------------------------------------------------
+
   const legs = players.map(player => ({
-  id: crypto.randomUUID(),
-  player,
-  team: "",
-  game: "",
-  market: "Anytime TD",
-  odds: "",
-  status: "not_started",
-  touchdowns: 0,
-  promo: false
-}));
+    id: crypto.randomUUID(),
+    player,
+    team: getTeamForPlayer(player),
+    game: "",
+    market: "Anytime TD",
+    odds: "",
+    status: "not_started",
+    touchdowns: 0,
+    promo: false
+  }));
 
   res.json({
     source: "draftkings_import",
