@@ -551,16 +551,33 @@ for (const line of lines) {
     ) {
       let player = current;
 
-      // Remove common OCR garbage from the beginning.
-      player = player
-        .replace(/^[^A-Za-zÀ-ÿ'-]+/, "")
-        .replace(/^(?:o|0|©|e|ee|al|HL|gle|billed)\s+/i, "")
-        .trim();
+// Remove OCR junk from the beginning of the line.
+player = player
+  .replace(/^[^A-Za-zÀ-ÿ]+/, "")
+  .trim();
 
-      // Remove common OCR garbage from the end.
-      player = player
-        .replace(/\s+(?:ee|al|HL|gle|billed)$/i, "")
-        .trim();
+// Remove OCR junk that looks like numbering or punctuation
+// before the actual player name.
+player = player
+  .replace(/^(?:\d+[\s\-.)]*)+/i, "")
+  .replace(/^(?:o|q|lq|iq|hl|©)\s+/i, "")
+  .trim();
+
+// Remove obvious OCR junk from the end.
+player = player
+  .replace(/\s+(?:ee|al|hl|gle|billed|7s)$/i, "")
+  .trim();
+
+// OCR sometimes removes the space between first and last name.
+player = player
+  .replace(/\bJoshAllen\b/i, "Josh Allen")
+  .replace(/\bJalenHurts\b/i, "Jalen Hurts");
+
+// Remove stray punctuation left at either end.
+player = player
+  .replace(/^[^A-Za-zÀ-ÿ]+/, "")
+  .replace(/[^A-Za-zÀ-ÿ'.\-]+$/g, "")
+  .trim();
 
       if (player && player.length >= 3) {
         players.push(player);
