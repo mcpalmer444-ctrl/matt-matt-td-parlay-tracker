@@ -554,9 +554,8 @@ app.post("/api/import/parse", (req,res) => {
 
     // Remove OCR numbering / punctuation.
     player = player
-      .replace(/^(?:\d+[\s\-.)]*)+/i, "")
-      .replace(/^(?:iq|lq|q|o|hl|©)\s*[\)\]":\-]*\s*/i, "")
-      .trim();
+  .replace(/^\s*(?:\d+[\s\-.)]*|iq\)|lq\)|q\)|o\)|hl\)|©)\s*/i, "")
+  .trim();
 
     // Remove common OCR junk at the end.
     player = player
