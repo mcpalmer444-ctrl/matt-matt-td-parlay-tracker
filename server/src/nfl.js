@@ -59,7 +59,7 @@ function gameTeams(event) {
 async function getNFLScoreboard() {
   const dates = [];
 
-  for (let i = -7; i <= 7; i++) {
+  for (let i = -21; i <= 7; i++) {
   const date = new Date();
   date.setDate(date.getDate() + i);
 
