@@ -251,13 +251,22 @@ if (player.gameId) {
 
     let foundGame = null;
 
-    if (liveGame) {
-      foundGame = liveGame;
-    } else if (upcomingGames.length) {
-      foundGame = upcomingGames[0];
-    } else if (completedGames.length) {
-      foundGame = completedGames[0];
-    }
+    if (player.parlayStatus === "lost" || player.parlayStatus === "won") {
+  // Settled parlays should finish tracking the game that already happened.
+  if (completedGames.length) {
+    foundGame = completedGames[0];
+  } else if (liveGame) {
+    foundGame = liveGame;
+  } else if (upcomingGames.length) {
+    foundGame = upcomingGames[0];
+  }
+} else if (liveGame) {
+  foundGame = liveGame;
+} else if (upcomingGames.length) {
+  foundGame = upcomingGames[0];
+} else if (completedGames.length) {
+  foundGame = completedGames[0];
+}
 
     if (!foundGame) {
       statuses.push({
