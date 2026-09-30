@@ -348,6 +348,16 @@ if (gamesAfterParlay.length) {
 
     const touchdowns =
       touchdownMap.get(player.normalizedName)?.touchdowns || 0;
+    console.log(
+  "TOUCHDOWN LOOKUP:",
+  player.name,
+  "normalized:",
+  player.normalizedName,
+  "touchdowns:",
+  touchdowns,
+  "touchdownMap:",
+  [...touchdownMap.entries()]
+);
 
     // Final game
     if (foundGame.status === "final") {
