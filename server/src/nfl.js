@@ -57,36 +57,35 @@ function gameTeams(event) {
 }
 
 async function getNFLScoreboard() {
-  const dates = [];
+  const start = new Date();
+  start.setDate(start.getDate() - 21);
 
-  for (let i = -21; i <= 7; i++) {
-  const date = new Date();
-  date.setDate(date.getDate() + i);
+  const end = new Date();
+  end.setDate(end.getDate() + 7);
 
+  const formatDate = (date) => {
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, "0");
     const day = String(date.getUTCDate()).padStart(2, "0");
 
-    dates.push(`${year}${month}${day}`);
-  }
+    return `${year}${month}${day}`;
+  };
 
-  const responses = await Promise.all(
-    dates.map((date) =>
-      fetchJson(`${ESPN_SCOREBOARD}?dates=${date}`)
-    )
-  );
+  const startDate = formatDate(start);
+  const endDate = formatDate(end);
 
-  const events = responses.flatMap(
-    (data) => data.events || []
-  );
+  const url =
+    `${ESPN_SCOREBOARD}?limit=1000&dates=${startDate}-${endDate}`;
 
-  const uniqueEvents = [
-    ...new Map(
-      events.map((event) => [String(event.id), event])
-    ).values()
-  ];
+  console.log("NFL scoreboard range:", startDate, "to", endDate);
 
-  return uniqueEvents.map((event) => ({
+  const data = await fetchJson(url);
+
+  const events = Array.isArray(data?.events)
+    ? data.events
+    : [];
+
+  return events.map((event) => ({
     id: String(event.id),
     name: event.name || "",
     shortName: event.shortName || "",
