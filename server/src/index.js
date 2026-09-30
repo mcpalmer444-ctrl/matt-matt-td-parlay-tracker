@@ -560,7 +560,7 @@ player = player
 // before the actual player name.
 player = player
   .replace(/^(?:\d+[\s\-.)]*)+/i, "")
-  .replace(/^(?:o|q|lq|iq|hl|©)\s+/i, "")
+  .replace(/^(?:o|q|lq|iq|hl|©)\s*[\)\]":\-]*\s*/i, "")
   .trim();
 
 // Remove obvious OCR junk from the end.
