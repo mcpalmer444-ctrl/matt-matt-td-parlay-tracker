@@ -24,6 +24,7 @@ function App(){
   (p.legs||[]).map(l=>({
     id:l.id,
     parlayId:p.id,
+    parlayStatus:p.status,
     name:l.player,
     game:l.game,
     team:l.team,
