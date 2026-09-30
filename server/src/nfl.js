@@ -215,7 +215,21 @@ if (player.gameId) {
     }
   }
 }
-
+console.log(
+  "PLAYER MATCH:",
+  player.name,
+  "team:",
+  player.team,
+  "game:",
+  player.game,
+  "matches:",
+  matchingGames.map(g => ({
+    id: g.id,
+    name: g.name,
+    status: g.status
+  }))
+);
+    
     if (!matchingGames.length) {
       statuses.push({
         ...player,
