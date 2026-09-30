@@ -20,11 +20,12 @@ function App(){
   const liveParlays = next.parlays;
 
   if(liveParlays.length){
-    const players=liveParlays.flatMap(p=>
+ const players=liveParlays.flatMap(p=>
   (p.legs||[]).map(l=>({
     id:l.id,
     parlayId:p.id,
     parlayStatus:p.status,
+    parlayCreatedAt:p.created_at,
     name:l.player,
     game:l.game,
     team:l.team,
