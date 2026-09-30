@@ -270,6 +270,22 @@ console.log(
   ? new Date(player.parlayCreatedAt).getTime()
   : 0;
 
+    console.log(
+  "PARLAY GAME SELECTION:",
+  player.name,
+  "parlayCreatedAt:",
+  player.parlayCreatedAt,
+  "parlayTime:",
+  parlayTime,
+  "games:",
+  matchingGames.map(g => ({
+    id: g.id,
+    name: g.name,
+    date: g.date,
+    time: g.date ? new Date(g.date).getTime() : null
+  }))
+);
+
 const gamesAfterParlay = matchingGames
   .filter((game) => {
     if (!game.date || !parlayTime) return true;
