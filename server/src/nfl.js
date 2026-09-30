@@ -158,6 +158,8 @@ function extractPlayerTouchdowns(summary) {
 async function getNFLPlayerStatuses(players) {
   const scoreboard = await getNFLScoreboard();
 
+  console.log("NFL scoreboard games:", scoreboard.length);
+
   const wanted = players.map((player) => ({
     ...player,
     normalizedName: normalizeName(player.name),
