@@ -235,11 +235,21 @@ function Stats({parlays, bankroll}){
       <small>Finished Season 1 down $34.45</small>
     </div>
 
-    <div className="stat">
-      <span>SEASON 2 PROFIT</span>
-      <b>+$93.95</b>
-      <small>Current Season 2 profit</small>
-    </div>
+<div className="stat">
+  <span>SEASON 2 PROFIT</span>
+  <b>
+    {money(
+      parlays.reduce(
+        (sum, p) =>
+          sum +
+          Number(p.actual_payout || 0) -
+          Number(p.wager || 0),
+        0
+      )
+    )}
+  </b>
+  <small>Current Season 2 profit</small>
+</div>
 
    <div className="stat">
   <span>CURRENT BANKROLL</span>
