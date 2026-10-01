@@ -614,7 +614,7 @@ app.post("/api/import/parse", (req,res) => {
     "jalen hurts": "PHI",
 
     // Previous / common TD parlay players
-    "dontayvion wicks": "GB",
+    "dontayvion wicks": "PHI",
     "derrick henry": "BAL",
     "bucky irving": "TB",
     "chase brown": "CIN",
