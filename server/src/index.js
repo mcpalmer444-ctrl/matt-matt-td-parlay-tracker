@@ -65,7 +65,14 @@ async function getState() {
   return {
     bankroll: { mattP, mattB },
     transactions: tx.rows,
-    parlays: ps.rows.map(p => ({...p, legs: p.legs}))
+   parlays: ps.rows.map(p => ({
+  ...p,
+  legs: (p.legs || []).map(leg =>
+    String(leg.player || "").toLowerCase() === "dontayvion wicks"
+      ? { ...leg, team: "PHI" }
+      : leg
+  )
+}))
   };
 }
 
